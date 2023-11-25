@@ -1,2 +1,1 @@
-# clj-source-code-map
-xxx
+; https://github.com/bbatsov/clojure-style-guide
