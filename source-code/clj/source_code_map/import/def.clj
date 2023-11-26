@@ -5,48 +5,6 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-; (defn my-function [] ...)
-; (def A my-function)
-; (def B A)
-; (def C B)
-;
-; legyen benne a state-ben az is hogy honnan hova min keresztül van átirányitva
-; és ezt fel kék tüntetni a doksiban is a teljes redirection trace-t:
-;
-; This function is redirected [ajax.api/send-request! > ajax.side-effects/send-request!]
-; This constant is redirected [my-library.api/MY-CONSTANT > my-library.config/MY-CONSTANT > iso.my-library.config/MY-CONSTANT]
-
-; függvényre mutat-e az endpoint?
-; (defn def-symbol-fn? [])
-
-; (def MY-CONSTANT my-symbol)
-; (defn def-symbol? [])
-
-; (def MY-FUNCTION (fn [] ...))
-; Ezt is függvénynek olvassa be mint a defn-t
-; (defn def-fn? [])
-
-;; ----------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; ----------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------
-
 (defn get-def
   ; @ignore
   ;
@@ -192,7 +150,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (map)
-  [file-data state metafunctions
+  [file-data state metafunctions]
+  (cond (add-def?   file-data state metafunctions) (add-def   file-data state metafunctions)
         (read-def?  file-data state metafunctions) (read-def  file-data state metafunctions)
         (close-def? file-data state metafunctions) (close-def file-data state metafunctions)
-        :return file-data])
+        :return file-data))

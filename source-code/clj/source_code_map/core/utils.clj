@@ -5,12 +5,12 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn valid-directory-path
+(defn valid-source-path
   ; @ignore
   ;
-  ; @param (string) directory-path
+  ; @param (string) source-path
   ;
   ; @return (string)
-  [directory-path]
-  (-> directory-path (string/not-starts-with! "/")
-                     (string/not-ends-with!   "/")))
+  [source-path]
+  (-> source-path (string/not-starts-with! "/")
+                  (string/not-ends-with!   "/")))
