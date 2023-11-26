@@ -12,7 +12,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn import-file
+(defn import-source-file
   ; @ignore
   ;
   ; @param (string) filepath
@@ -57,7 +57,7 @@
   ([filepath options]
    (let [filepath (core.prototypes/filepath-prototype filepath)
          options  (core.prototypes/options-prototype  options)]
-        (try (import-file filepath options)
+        (try (import-source-file filepath options)
              (catch Exception e (println e))))))
 
 ;; ----------------------------------------------------------------------------
@@ -73,7 +73,7 @@
   ; @return (map)
   [source-paths {:keys [filename-pattern] :as options}]
   (-> source-paths (vector/->items    (fn [source-path] (io/search-files source-path filename-pattern)))
-                   (vector/flat-items (fn [filepath]    [filepath (import-file filepath options)]))))
+                   (vector/flat-items (fn [filepath]    [filepath (import-source-file filepath options)]))))
 
 (defn read-source-files
   ; @param (strings in vector) source-paths

@@ -1,8 +1,9 @@
 
 (ns source-code-map.import.ns
-    (:require [reader.api :as reader]
-              [string.api :as string]
-              [vector.api :as vector]))
+    (:require [reader.api                   :as reader]
+              [source-code-map.import.utils :as import.utils]
+              [string.api                   :as string]
+              [vector.api                   :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -18,119 +19,6 @@
   [_ _ {:keys [tag-opened?]}]
   (vector/first-match [:ns/import :ns/require :ns/use] tag-opened?))
 
-(defn get-ns
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (map)
-  [file-data _ _]
-  (-> file-data :ns last))
-
-(defn conj-ns
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (map) initial
-  ;
-  ; @return (map)
-  [file-data _ _ initial]
-  (update file-data :ns vector/conj-item initial))
-
-(defn update-ns
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (function) f
-  ; @param (list of *) params
-  ;
-  ; @return (map)
-  [file-data state metafunctions f & params]
-  (apply update file-data :ns vector/update-last-item f params))
-
-(defn get-ns-libspec
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (map)
-  [file-data state metafunctions]
-  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
-       (-> file-data :ns last deps-directive last)))
-
-(defn conj-ns-libspec
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (map) initial
-  ;
-  ; @return (map)
-  [file-data state metafunctions initial]
-  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
-       (update-ns file-data state metafunctions update deps-directive vector/conj-item initial)))
-
-(defn update-ns-libspec
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (function) f
-  ; @param (list of *) params
-  ;
-  ; @return (map)
-  [file-data state metafunctions f & params]
-  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
-       (apply update-ns file-data state metafunctions update deps-directive vector/update-last-item f params)))
-
-(defn get-ns-prefixed-libspec
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (map)
-  [file-data state metafunctions]
-  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
-       (-> file-data :ns last deps-directive last :prefixed last)))
-
-(defn conj-ns-prefixed-libspec
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (map) initial
-  ;
-  ; @return (map)
-  [file-data state metafunctions initial]
-  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
-       (update-ns file-data state metafunctions update deps-directive vector/update-last-item update :prefixed vector/conj-item initial)))
-
-(defn update-ns-prefixed-libspec
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (function) f
-  ; @param (list of *) params
-  ;
-  ; @return (map)
-  [file-data state metafunctions f & params]
-  (apply update-ns-libspec file-data state metafunctions update :prefixed vector/update-last-item f params))
-
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
@@ -142,8 +30,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [tag-ends?]}]
-  (-> :keyword tag-ends?))
+  [_ _ {:keys [ending-tag]}]
+  (-> (ending-tag) (= :keyword)))
 
 (defn read-ns-directive-operator
   ; @ignore
@@ -155,7 +43,7 @@
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
   (let [left-keyword (-> :keyword tag-body reader/read-edn)]
-       (update-ns file-data state metafunctions assoc :left-operator left-keyword)))
+       (import.utils/update-last-block-data file-data [:ns] assoc :left-operator left-keyword)))
 
 (defn disarm-ns-directive-operator?
   ; @ignore
@@ -165,9 +53,9 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [tag-ends?]}]
-  (or (-> :map    tag-ends?)
-      (-> :vector tag-ends?)))
+  [_ _ {:keys [ending-tag]}]
+  (or (-> (ending-tag) (= :map))
+      (-> (ending-tag) (= :vector))))
 
 (defn disarm-ns-directive-operator
   ; @ignore
@@ -178,7 +66,7 @@
   ;
   ; @return (map)
   [file-data state metafunctions]
-  (update-ns file-data state metafunctions dissoc :left-operator))
+  (import.utils/update-last-block-data file-data [:ns] dissoc :left-operator))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -191,9 +79,9 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [left-sibling-count tag-ends?]}]
-  (and (-> :symbol tag-ends?)
-       (= 0 (left-sibling-count))))
+  [_ _ {:keys [ending-tag left-sibling-count]}]
+  (and (-> (ending-tag)         (= :symbol))
+       (-> (left-sibling-count) (= 0))))
 
 (defn read-ns-name
   ; @ignore
@@ -205,7 +93,7 @@
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
   (let [left-symbol (-> :symbol tag-body)]
-       (update-ns file-data state metafunctions assoc :name left-symbol)))
+       (import.utils/update-last-block-data file-data [:ns] assoc :name left-symbol)))
 
 (defn read-ns-body
   ; @ignore
@@ -230,11 +118,11 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [depth left-sibling-count tag-ancestor? tag-ends?]}]
-  (and (or (-> :string tag-ends?)
-           (-> :symbol tag-ends?))
-       (= 3 (depth))
-       (= 0 (left-sibling-count))))
+  [_ _ {:keys [depth ending-tag left-sibling-count tag-ancestor?]}]
+  (and (or (-> (ending-tag) (= :string))
+           (-> (ending-tag) (= :symbol)))
+       (-> (depth)              (= 3))
+       (-> (left-sibling-count) (= 0))))
 
 (defn read-ns-libspec-name
   ; @ignore
@@ -245,9 +133,10 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (or (-> :string tag-body)
-                        (-> :symbol tag-body))]
-       (update-ns-libspec file-data state metafunctions assoc :name left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (or (tag-body :string)
+                           (tag-body :symbol))]
+       (import.utils/update-last-block-data file-data [:ns deps-directive] assoc :name left-symbol)))
 
 (defn read-ns-libspec-alias?
   ; @ignore
@@ -257,10 +146,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 3 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :as))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 3))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :as))))
 
 (defn read-ns-libspec-alias
   ; @ignore
@@ -271,8 +160,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (update-ns-libspec file-data state metafunctions assoc :alias left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/update-last-block-data file-data [:ns deps-directive] assoc :alias left-symbol)))
 
 (defn read-ns-libspec-only?
   ; @ignore
@@ -282,10 +172,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 4 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :only))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 4))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :only))))
 
 (defn read-ns-libspec-only
   ; @ignore
@@ -296,8 +186,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (update-ns-libspec file-data state metafunctions update :only vector/conj-item left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive :only] left-symbol)))
 
 (defn read-ns-libspec-refer?
   ; @ignore
@@ -307,10 +198,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 4 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :refer))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 4))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :refer))))
 
 (defn read-ns-libspec-refer
   ; @ignore
@@ -321,8 +212,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (update-ns-libspec file-data state metafunctions update :refer vector/conj-item left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive :refer] left-symbol)))
 
 (defn read-ns-libspec-rename?
   ; @ignore
@@ -332,10 +224,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 4 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :rename))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 4))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :rename))))
 
 (defn read-ns-libspec-rename
   ; @ignore
@@ -346,10 +238,11 @@
   ;
   ; @return (map)
   [file-data state {:keys [left-sibling-count tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
        (if (-> (left-sibling-count) even?)
-           (update-ns-libspec file-data state metafunctions update :rename vector/conj-item [left-symbol])
-           (update-ns-libspec file-data state metafunctions update :rename vector/update-last-item vector/conj-item left-symbol))))
+           (import.utils/conj-block-data        file-data [:ns deps-directive :rename] [left-symbol])
+           (import.utils/update-last-block-data file-data [:ns deps-directive :rename] vector/conj-item left-symbol))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -362,11 +255,12 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 3 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :name string/nonempty?)
-       (-> (get-ns         file-data state metafunctions) :left-operator not)))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
+       (and (-> (ending-tag) (= :symbol))
+            (-> (depth)      (= 3))
+            (-> (import.utils/get-last-block-data file-data [:ns deps-directive]) :name string/nonempty?)
+            (-> (import.utils/get-last-block-data file-data [:ns])                :left-operator not))))
 
 (defn read-ns-prefixed-raw-libspec-name
   ; @ignore
@@ -377,8 +271,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (conj-ns-prefixed-libspec file-data state metafunctions {:name left-symbol})))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive :prefixed] {:name left-symbol})))
 
 (defn read-ns-prefixed-libspec-name?
   ; @ignore
@@ -388,10 +283,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 4 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator not)))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 4))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator not)))
 
 (defn read-ns-prefixed-libspec-name
   ; @ignore
@@ -402,8 +297,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (conj-ns-prefixed-libspec file-data state metafunctions {:name left-symbol})))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive :prefixed] {:name left-symbol})))
 
 (defn read-ns-prefixed-libspec-alias?
   ; @ignore
@@ -413,10 +309,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 4 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :as))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 4))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :as))))
 
 (defn read-ns-prefixed-libspec-alias
   ; @ignore
@@ -427,8 +323,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (update-ns-prefixed-libspec file-data state metafunctions assoc :alias left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/update-last-block-data file-data [:ns deps-directive :prefixed] assoc :alias left-symbol)))
 
 (defn read-ns-prefixed-libspec-only?
   ; @ignore
@@ -438,10 +335,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 5 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :only))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 5))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :only))))
 
 (defn read-ns-prefixed-libspec-only
   ; @ignore
@@ -452,8 +349,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (update-ns-prefixed-libspec file-data state metafunctions update :only vector/conj-item left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive :prefixed :only] left-symbol)))
 
 (defn read-ns-prefixed-libspec-refer?
   ; @ignore
@@ -463,10 +361,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 5 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :refer))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 5))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :refer))))
 
 (defn read-ns-prefixed-libspec-refer
   ; @ignore
@@ -477,8 +375,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (update-ns-prefixed-libspec file-data state metafunctions update :refer vector/conj-item left-symbol)))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive :prefixed :refer] left-symbol)))
 
 (defn read-ns-prefixed-libspec-rename?
   ; @ignore
@@ -488,10 +387,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [file-data state {:keys [depth tag-ends?] :as metafunctions}]
-  (and (-> :symbol tag-ends?)
-       (= 5 (depth))
-       (-> (get-ns file-data state metafunctions) :left-operator (= :rename))))
+  [file-data state {:keys [depth ending-tag] :as metafunctions}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 5))
+       (-> (import.utils/get-last-block-data file-data [:ns]) :left-operator (= :rename))))
 
 (defn read-ns-prefixed-libspec-rename
   ; @ignore
@@ -502,10 +401,11 @@
   ;
   ; @return (map)
   [file-data state {:keys [left-sibling-count tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
        (if (-> (left-sibling-count) even?)
-           (update-ns-prefixed-libspec file-data state metafunctions update :rename vector/conj-item [left-symbol])
-           (update-ns-prefixed-libspec file-data state metafunctions update :rename vector/update-last-item vector/conj-item left-symbol))))
+           (import.utils/conj-block-data        file-data [:ns deps-directive :prefixed :rename] [left-symbol])
+           (import.utils/update-last-block-data file-data [:ns deps-directive :prefixed :rename] vector/conj-item left-symbol))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -518,10 +418,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [depth tag-starts?]}]
-  (and (or (-> :list   tag-starts?)
-           (-> :vector tag-starts?))
-       (= 2 (depth))))
+  [_ _ {:keys [depth starting-tag]}]
+  (and (or (-> (starting-tag) (= :list))
+           (-> (starting-tag) (= :vector)))
+       (-> (depth) (= 2))))
 
 (defn add-ns-libspec
   ; @ignore
@@ -531,9 +431,9 @@
   ; @param (map) metafunctions
   ;
   ; @return (map)
-  [file-data state {:keys [tag-ancestor?] :as metafunctions}]
-  (let [deps-directive (vector/first-match [:ns/import :ns/require :ns/use] tag-ancestor?)]
-       (conj-ns-libspec file-data state metafunctions {})))
+  [file-data state metafunctions]
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)]
+       (import.utils/conj-block-data file-data [:ns deps-directive] {})))
 
 (defn read-ns-libspec?
   ; @ignore
@@ -544,8 +444,8 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [tag-opened?]}]
-  (or (-> :list   tag-opened?)
-      (-> :vector tag-opened?)))
+  (or (tag-opened? :list)
+      (tag-opened? :vector)))
 
 (defn read-ns-libspec
   ; @ignore
@@ -580,9 +480,9 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [depth tag-ends?]}]
-  (and (-> :symbol tag-ends?)
-       (= 2 (depth))))
+  [_ _ {:keys [depth ending-tag]}]
+  (and (-> (ending-tag) (= :symbol))
+       (-> (depth)      (= 2))))
 
 (defn add-ns-raw-libspec
   ; @ignore
@@ -593,8 +493,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (conj-ns-libspec file-data state metafunctions {:name left-symbol})))
+  (let [deps-directive (ns-deps-directive file-data state metafunctions)
+        left-symbol    (tag-body :symbol)]
+       (import.utils/conj-block-data file-data [:ns deps-directive] {:name left-symbol})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -608,9 +509,9 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [tag-opened?]}]
-  (or (-> :ns/import  tag-opened?)
-      (-> :ns/require tag-opened?)
-      (-> :ns/use     tag-opened?)))
+  (or (tag-opened? :ns/import)
+      (tag-opened? :ns/require)
+      (tag-opened? :ns/use)))
 
 (defn read-ns-deps
   ; @ignore
@@ -639,8 +540,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [tag-starts?]}]
-  (-> :ns tag-starts?))
+  [_ _ {:keys [starting-tag]}]
+  (-> (starting-tag) (= :ns)))
 
 (defn add-ns
   ; @ignore
@@ -651,7 +552,7 @@
   ;
   ; @return (map)
   [file-data state metafunctions]
-  (conj-ns file-data state metafunctions {}))
+  (import.utils/conj-block-data file-data [:ns] {}))
 
 (defn read-ns?
   ; @ignore
@@ -662,7 +563,7 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [tag-opened?]}]
-  (-> :ns tag-opened?))
+  (tag-opened? :ns))
 
 (defn read-ns
   ; @ignore
@@ -684,8 +585,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [tag-ends?]}]
-  (-> :ns tag-ends?))
+  [_ _ {:keys [ending-tag]}]
+  (-> (ending-tag) (= :ns)))
 
 (defn close-ns
   ; @ignore
@@ -696,8 +597,8 @@
   ;
   ; @return (map)
   [file-data {:keys [cursor] :as state} {:keys [tag-started-at] :as metafunctions}]
-  (let [ns-started-at (-> :ns tag-started-at)]
-       (update-ns file-data state metafunctions merge {:ended-at cursor :started-at ns-started-at})))
+  (let [ns-started-at (tag-started-at :ns)]
+       (import.utils/update-last-block-data file-data [:ns] merge {:ended-at cursor :started-at ns-started-at})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------

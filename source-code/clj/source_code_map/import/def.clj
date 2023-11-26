@@ -1,45 +1,7 @@
 
 (ns source-code-map.import.def
-    (:require [vector.api :as vector]))
-
-;; ----------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------
-
-(defn get-def
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (map)
-  [file-data _ _]
-  (-> file-data :def last))
-
-(defn conj-def
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (map) initial
-  ;
-  ; @return (map)
-  [file-data _ _ initial]
-  (update file-data :def vector/conj-item initial))
-
-(defn update-def
-  ; @ignore
-  ;
-  ; @param (map) file-data
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ; @param (function) f
-  ; @param (list of *) params
-  ;
-  ; @return (map)
-  [file-data state metafunctions f & params]
-  (apply update file-data :def vector/update-last-item f params))
+    (:require [source-code-map.import.utils :as import.utils]
+              [vector.api                   :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -52,9 +14,9 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [left-sibling-count tag-ends?]}]
-  (and (-> :symbol tag-ends?)
-       (= 1 (left-sibling-count))))
+  [_ _ {:keys [ending-tag left-sibling-count]}]
+  (and (-> (ending-tag)         (= :symbol))
+       (-> (left-sibling-count) (= 0))))
 
 (defn read-def-name
   ; @ignore
@@ -65,8 +27,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [def-name (-> :symbol tag-body)]
-       (update-def file-data state metafunctions assoc :name def-name)))
+  (let [def-name (tag-body :symbol)]
+       (import.utils/update-last-block-data file-data [:def] assoc :name def-name)))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -79,8 +41,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [tag-starts?]}]
-  (-> :def tag-starts?))
+  [_ _ {:keys [starting-tag]}]
+  (-> (starting-tag) (= :def)))
 
 (defn add-def
   ; @ignore
@@ -91,7 +53,7 @@
   ;
   ; @return (map)
   [file-data state metafunctions]
-  (conj-def file-data state metafunctions {}))
+  (import.utils/conj-block-data file-data [:def] {}))
 
 (defn read-def?
   ; @ignore
@@ -102,7 +64,7 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [tag-opened?]}]
-  (-> :def tag-opened?))
+  (tag-opened? :def))
 
 (defn read-def
   ; @ignore
@@ -124,8 +86,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [tag-ends?]}]
-  (-> :def tag-ends?))
+  [_ _ {:keys [ending-tag]}]
+  (-> (ending-tag) (= :def)))
 
 (defn close-def
   ; @ignore
@@ -136,7 +98,7 @@
   ;
   ; @return (map)
   [file-data {:keys [cursor] :as state} {:keys [tag-started-at] :as metafunctions}]
-  (let [ns-started-at (-> :def tag-started-at)]
+  (let [ns-started-at (tag-started-at :def)]
        (update-def file-data state metafunctions merge {:ended-at cursor :started-at ns-started-at})))
 
 ;; ----------------------------------------------------------------------------
