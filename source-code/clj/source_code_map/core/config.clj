@@ -13,7 +13,7 @@
       :regex-pattern [#"\#\"" #"\"" {:disable-interpreter? true}]
       :string        [#"\""   #"\"" {:disable-interpreter? true}]
       ; Lists and vectors are required in order to ensure that all the bracket / parenthesis openings and closings are processed accuratelly.
-      ; With the ':low' priority setting, raw lists and vectors are only processed on case of no other known tag starts / closes at the same cursor position.
+      ; With the ':low' priority setting, raw lists and vectors are only processed in case of no other known tag starts / closes at the same cursor position.
       :list   [#"\(" #"\)" {:priority :low}]
       :map    [#"\{" #"\}" {:priority :low}]
       :vector [#"\[" #"\]" {:priority :low}]
@@ -21,7 +21,7 @@
       :def  [#"\(def(?=[\n\r\s\t])"    #"\)"]
       :defn [#"\(defn(?=[\n\r\s\t\-])" #"\)"]
       :ns   [#"\(ns(?=[\n\r\s\t])"     #"\)"]
-      :fn   [#"\(fn(?=[\n\r\s\t])"     #"\)"] ; you could name a function as fn!
+      :fn   [#"\(fn(?=[\n\r\s\t])"     #"\)"] ; A function could be named as 'fn'!
       :fn-s [#"\#\("                   #"\)"]
       ; ...
       :ns/info          [#"\(\:author|doc|license(?=[\n\r\s\t\)])" #"\)" {:accepted-parents [:ns]}]
@@ -37,11 +37,10 @@
       ; + symbol first character couldn't be : '
       ;
       ; (def a :a)
-      ;
       ; (type #'a)   => var                        (mutable var associated with the symbol)
       ; (type  'a)   => symbol (unresolved symbol) (immutable reference)
       ; (type   a)   => keyword
-      :keyword    [#"(?<=[\n\r\s\t\[\(\{])\:[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{1,}(?=[\n\r\s\t\]\)\}])"]
-      :symbol     [#"(?<=[\n\r\s\t\[\(\{])[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\.\~\^][a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{0,}(?=[\n\r\s\t\]\)\}])"]
-      :unresolved [#"(?<=[\n\r\s\t\[\(\{])\'[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\.\~\^][a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{0,}(?=[\n\r\s\t\]\)\}])"]
-      :var        [#"(?<=[\n\r\s\t\[\(\{])\#\'[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\.\~\^][a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{0,}(?=[\n\r\s\t\]\)\}])"]})
+      :keyword    [#"(?<=[\n\r\s\t\[\(\{])\:[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{1,}(?=[\n\r\s\t\]\)\}])" {:priority :low}]
+      :symbol     [#"(?<=[\n\r\s\t\[\(\{])[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\.\~\^][a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{0,}(?=[\n\r\s\t\]\)\}])" {:priority :low}]
+      :unresolved [#"(?<=[\n\r\s\t\[\(\{])\'[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\.\~\^][a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{0,}(?=[\n\r\s\t\]\)\}])" {:priority :low}]
+      :var        [#"(?<=[\n\r\s\t\[\(\{])\#\'[a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\.\~\^][a-zA-Z\d\+\-\*\/\=\<\>\!\?\_\%\&\#\'\.\:\~\^]{0,}(?=[\n\r\s\t\]\)\}])" {:priority :low}]})

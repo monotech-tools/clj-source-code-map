@@ -134,7 +134,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-ns-libspec-operator?
+(defn read-ns-directive-operator?
   ; @ignore
   ;
   ; @param (map) file-data
@@ -142,12 +142,10 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [depth tag-ends?]}]
-  (and (-> :keyword tag-ends?)
-       (or (= 3 (depth))
-           (= 4 (depth)))))
+  [_ _ {:keys [tag-ends?]}]
+  (-> :keyword tag-ends?))
 
-(defn read-ns-libspec-operator
+(defn read-ns-directive-operator
   ; @ignore
   ;
   ; @param (map) file-data
@@ -156,10 +154,10 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [left-operator (-> :keyword tag-body reader/read-edn)]
-       (update-ns-libspec file-data state metafunctions assoc :left-operator left-operator)))
+  (let [left-keyword (-> :keyword tag-body reader/read-edn)]
+       (update-ns file-data state metafunctions assoc :left-operator left-keyword)))
 
-(defn disarm-ns-libspec-operator?
+(defn disarm-ns-directive-operator?
   ; @ignore
   ;
   ; @param (map) file-data
@@ -167,13 +165,11 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [depth tag-ends?]}]
-  (and (or (-> :map    tag-ends?)
-           (-> :vector tag-ends?))
-       (or (= 2 (depth))
-           (= 3 (depth)))))
+  [_ _ {:keys [tag-ends?]}]
+  (or (-> :map    tag-ends?)
+      (-> :vector tag-ends?)))
 
-(defn disarm-ns-libspec-operator
+(defn disarm-ns-directive-operator
   ; @ignore
   ;
   ; @param (map) file-data
@@ -182,7 +178,7 @@
   ;
   ; @return (map)
   [file-data state metafunctions]
-  (update-ns-libspec file-data state metafunctions dissoc :left-operator))
+  (update-ns file-data state metafunctions dissoc :left-operator))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -208,8 +204,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [ns-name (-> :symbol tag-body)]
-       (update-ns file-data state metafunctions assoc :name ns-name)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns file-data state metafunctions assoc :name left-symbol)))
 
 (defn read-ns-body
   ; @ignore
@@ -249,9 +245,9 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [libspec-name (or (-> :string tag-body)
-                         (-> :symbol tag-body))]
-       (update-ns-libspec file-data state metafunctions assoc :name libspec-name)))
+  (let [left-symbol (or (-> :string tag-body)
+                        (-> :symbol tag-body))]
+       (update-ns-libspec file-data state metafunctions assoc :name left-symbol)))
 
 (defn read-ns-libspec-alias?
   ; @ignore
@@ -264,7 +260,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 3 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :as))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :as))))
 
 (defn read-ns-libspec-alias
   ; @ignore
@@ -275,8 +271,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [libspec-alias (-> :symbol tag-body)]
-       (update-ns-libspec file-data state metafunctions assoc :alias libspec-alias)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns-libspec file-data state metafunctions assoc :alias left-symbol)))
 
 (defn read-ns-libspec-only?
   ; @ignore
@@ -289,7 +285,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 4 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :only))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :only))))
 
 (defn read-ns-libspec-only
   ; @ignore
@@ -300,8 +296,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [only-name (-> :symbol tag-body)]
-       (update-ns-libspec file-data state metafunctions update :only vector/conj-item only-name)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns-libspec file-data state metafunctions update :only vector/conj-item left-symbol)))
 
 (defn read-ns-libspec-refer?
   ; @ignore
@@ -314,7 +310,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 4 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :refer))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :refer))))
 
 (defn read-ns-libspec-refer
   ; @ignore
@@ -325,8 +321,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [refer-name (-> :symbol tag-body)]
-       (update-ns-libspec file-data state metafunctions update :refer vector/conj-item refer-name)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns-libspec file-data state metafunctions update :refer vector/conj-item left-symbol)))
 
 (defn read-ns-libspec-rename?
   ; @ignore
@@ -339,7 +335,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 4 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :rename))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :rename))))
 
 (defn read-ns-libspec-rename
   ; @ignore
@@ -350,10 +346,10 @@
   ;
   ; @return (map)
   [file-data state {:keys [left-sibling-count tag-body] :as metafunctions}]
-  (let [rename-symbol (-> :symbol tag-body)]
+  (let [left-symbol (-> :symbol tag-body)]
        (if (-> (left-sibling-count) even?)
-           (update-ns-libspec file-data state metafunctions update :rename vector/conj-item [rename-symbol])
-           (update-ns-libspec file-data state metafunctions update :rename vector/update-last-item vector/conj-item rename-symbol))))
+           (update-ns-libspec file-data state metafunctions update :rename vector/conj-item [left-symbol])
+           (update-ns-libspec file-data state metafunctions update :rename vector/update-last-item vector/conj-item left-symbol))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -370,7 +366,7 @@
   (and (-> :symbol tag-ends?)
        (= 3 (depth))
        (-> (get-ns-libspec file-data state metafunctions) :name string/nonempty?)
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator not)))
+       (-> (get-ns         file-data state metafunctions) :left-operator not)))
 
 (defn read-ns-prefixed-raw-libspec-name
   ; @ignore
@@ -381,8 +377,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [prefixed-name (-> :symbol tag-body)]
-       (conj-ns-prefixed-libspec file-data state metafunctions {:name prefixed-name})))
+  (let [left-symbol (-> :symbol tag-body)]
+       (conj-ns-prefixed-libspec file-data state metafunctions {:name left-symbol})))
 
 (defn read-ns-prefixed-libspec-name?
   ; @ignore
@@ -395,7 +391,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 4 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator not)))
+       (-> (get-ns file-data state metafunctions) :left-operator not)))
 
 (defn read-ns-prefixed-libspec-name
   ; @ignore
@@ -406,8 +402,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [prefixed-name (-> :symbol tag-body)]
-       (conj-ns-prefixed-libspec file-data state metafunctions {:name prefixed-name})))
+  (let [left-symbol (-> :symbol tag-body)]
+       (conj-ns-prefixed-libspec file-data state metafunctions {:name left-symbol})))
 
 (defn read-ns-prefixed-libspec-alias?
   ; @ignore
@@ -420,7 +416,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 4 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :as))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :as))))
 
 (defn read-ns-prefixed-libspec-alias
   ; @ignore
@@ -431,8 +427,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [libspec-alias (-> :symbol tag-body)]
-       (update-ns-prefixed-libspec file-data state metafunctions assoc :alias libspec-alias)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns-prefixed-libspec file-data state metafunctions assoc :alias left-symbol)))
 
 (defn read-ns-prefixed-libspec-only?
   ; @ignore
@@ -445,7 +441,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 5 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :only))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :only))))
 
 (defn read-ns-prefixed-libspec-only
   ; @ignore
@@ -456,8 +452,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [only-name (-> :symbol tag-body)]
-       (update-ns-prefixed-libspec file-data state metafunctions update :only vector/conj-item only-name)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns-prefixed-libspec file-data state metafunctions update :only vector/conj-item left-symbol)))
 
 (defn read-ns-prefixed-libspec-refer?
   ; @ignore
@@ -470,7 +466,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 5 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :refer))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :refer))))
 
 (defn read-ns-prefixed-libspec-refer
   ; @ignore
@@ -481,8 +477,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [refer-name (-> :symbol tag-body)]
-       (update-ns-prefixed-libspec file-data state metafunctions update :refer vector/conj-item refer-name)))
+  (let [left-symbol (-> :symbol tag-body)]
+       (update-ns-prefixed-libspec file-data state metafunctions update :refer vector/conj-item left-symbol)))
 
 (defn read-ns-prefixed-libspec-rename?
   ; @ignore
@@ -495,7 +491,7 @@
   [file-data state {:keys [depth tag-ends?] :as metafunctions}]
   (and (-> :symbol tag-ends?)
        (= 5 (depth))
-       (-> (get-ns-libspec file-data state metafunctions) :left-operator (= :rename))))
+       (-> (get-ns file-data state metafunctions) :left-operator (= :rename))))
 
 (defn read-ns-prefixed-libspec-rename
   ; @ignore
@@ -506,10 +502,10 @@
   ;
   ; @return (map)
   [file-data state {:keys [left-sibling-count tag-body] :as metafunctions}]
-  (let [rename-symbol (-> :symbol tag-body)]
+  (let [left-symbol (-> :symbol tag-body)]
        (if (-> (left-sibling-count) even?)
-           (update-ns-prefixed-libspec file-data state metafunctions update :rename vector/conj-item [rename-symbol])
-           (update-ns-prefixed-libspec file-data state metafunctions update :rename vector/update-last-item vector/conj-item rename-symbol))))
+           (update-ns-prefixed-libspec file-data state metafunctions update :rename vector/conj-item [left-symbol])
+           (update-ns-prefixed-libspec file-data state metafunctions update :rename vector/update-last-item vector/conj-item left-symbol))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -597,8 +593,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [libspec-name (-> :symbol tag-body)]
-       (conj-ns-libspec file-data state metafunctions {:name libspec-name})))
+  (let [left-symbol (-> :symbol tag-body)]
+       (conj-ns-libspec file-data state metafunctions {:name left-symbol})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -625,11 +621,11 @@
   ;
   ; @return (map)
   [file-data state metafunctions]
-  (cond (add-ns-raw-libspec?         file-data state metafunctions) (add-ns-raw-libspec         file-data state metafunctions)
-        (add-ns-libspec?             file-data state metafunctions) (add-ns-libspec             file-data state metafunctions)
-        (read-ns-libspec-operator?   file-data state metafunctions) (read-ns-libspec-operator   file-data state metafunctions)
-        (disarm-ns-libspec-operator? file-data state metafunctions) (disarm-ns-libspec-operator file-data state metafunctions)
-        (read-ns-libspec?            file-data state metafunctions) (read-ns-libspec            file-data state metafunctions)
+  (cond (add-ns-raw-libspec?           file-data state metafunctions) (add-ns-raw-libspec           file-data state metafunctions)
+        (add-ns-libspec?               file-data state metafunctions) (add-ns-libspec               file-data state metafunctions)
+        (read-ns-directive-operator?   file-data state metafunctions) (read-ns-directive-operator   file-data state metafunctions)
+        (disarm-ns-directive-operator? file-data state metafunctions) (disarm-ns-directive-operator file-data state metafunctions)
+        (read-ns-libspec?              file-data state metafunctions) (read-ns-libspec              file-data state metafunctions)
         :return file-data))
 
 ;; ----------------------------------------------------------------------------
