@@ -1,7 +1,8 @@
 
 (ns source-code-map.import.defn
-    (:require [source-code-map.import.utils :as import.utils]
-              [vector.api                   :as vector]))
+    (:require [map.api     :refer [assoc-by update-by]]
+              [seqable.api :refer [last-dex]]
+              [vector.api  :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -27,8 +28,8 @@
   ;
   ; @return (map)
   [file-data state {:keys [tag-body] :as metafunctions}]
-  (let [defn-name (tag-body :symbol)]
-       (import.utils/update-last-block-data file-data [:defn] assoc defn-name)))
+  (let [left-symbol (tag-body :symbol)]
+       (assoc-by file-data [:defn last-dex :name] left-symbol)))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -53,7 +54,7 @@
   ;
   ; @return (map)
   [file-data state metafunctions]
-  (import.utils/conj-block-data file-data [:defn] {}))
+  (update file-data :defn vector/conj-item {}))
 
 (defn read-defn?
   ; @ignore
@@ -98,8 +99,8 @@
   ;
   ; @return (map)
   [file-data {:keys [cursor] :as state} {:keys [tag-started-at] :as metafunctions}]
-  (let [ns-started-at (tag-started-at :defn)]
-       (update-defn file-data state metafunctions merge {:ended-at cursor :started-at ns-started-at})))
+  (let [started-at (tag-started-at :defn)]
+       (assoc-by file-data [:defn last-dex :bounds] [started-at cursor])))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
