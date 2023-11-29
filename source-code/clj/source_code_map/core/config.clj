@@ -21,13 +21,13 @@
       :var        (:var        syntax-reader/CLJ-PATTERNS)
       :vector     (:vector     syntax-reader/CLJ-PATTERNS)
 
-      ; The '{:priority :high}' setting ensures that the functions, macros and directives have higher priority
+      ; The '{:priority :high}' setting ensures that the patterns of functions, macros and namespace directives have higher priority
       ; in the interpreter than the ':list' pattern.
       :def              [#"\(def(?=[\n\r\s\t])"                    #"\)" {:priority :high}]
       :defn             [#"\(defn(?=[\n\r\s\t\-])"                 #"\)" {:priority :high}]
       :ns               [#"\(ns(?=[\n\r\s\t])"                     #"\)" {:priority :high}]
-      :fn               [#"\(fn(?=[\n\r\s\t])"                     #"\)" {:priority :high}] ; Any function could be named as 'fn'!
-      :fn-s             [#"\#\("                                   #"\)" {:priority :high}]
+      :anfn             [#"\(fn(?=[\n\r\s\t])"                     #"\)" {:priority :high}] ; Any function could be named as 'fn'!
+      :anfn-s           [#"\#\("                                   #"\)" {:priority :high}]
       :ns/info          [#"\(\:author|doc|license(?=[\n\r\s\t\)])" #"\)" {:accepted-parents [:ns] :priority :high}]
       :ns/gen-class     [#"\(\:gen-class(?=[\n\r\s\t\)])"          #"\)" {:accepted-parents [:ns] :priority :high}]
       :ns/import        [#"\(\:import(?=[\n\r\s\t])"               #"\)" {:accepted-parents [:ns] :priority :high}]
