@@ -28,7 +28,7 @@
                              (vector/contains-item? reader-options :ns)   (import.ns/read-file   state metafunctions)))]
          ; ...
          (-> filepath (io/read-file {:warn? true})
-                      (syntax-reader/interpreter (fn [a b c] (println (:cursor b)) (f0 a b c)) {} core.config/PATTERNS))))
+                      (syntax-reader/interpreter f0 {} core.config/PATTERNS))))
 
 (defn read-source-file
   ; @param (string) filepath
