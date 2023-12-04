@@ -1,6 +1,6 @@
 
-(ns source-code-map.import.ns-declaration
-    (:require [source-code-map.import.ns-deps :as import.ns-deps]))
+(ns source-code-map.map.ns-declaration
+    (:require [source-code-map.map.ns-deps :as map.ns-deps]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -60,7 +60,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-ns-declaration
+(defn map-ns-declaration
   ; @ignore
   ;
   ; @param (map) result
@@ -69,6 +69,6 @@
   ;
   ; @return (map)
   [result state metafunctions]
-  (cond (read-ns-name? result state metafunctions) (read-ns-name                result state metafunctions)
-        (close-ns?     result state metafunctions) (close-ns                    result state metafunctions)
-        :read-ns-deps                              (import.ns-deps/read-ns-deps result state metafunctions)))
+  (cond (read-ns-name? result state metafunctions) (read-ns-name            result state metafunctions)
+        (close-ns?     result state metafunctions) (close-ns                result state metafunctions)
+        :map-ns-deps                               (map.ns-deps/map-ns-deps result state metafunctions)))

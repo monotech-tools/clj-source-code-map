@@ -1,5 +1,5 @@
 
-(ns source-code-map.import.ns-deps
+(ns source-code-map.map.ns-deps
     (:require [map.api     :refer [assoc-by get-by update-by]]
               [reader.api  :as reader]
               [seqable.api :refer [last-dex]]
@@ -623,7 +623,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-ns-deps
+(defn map-ns-deps
   ; @ignore
   ;
   ; @param (map) result

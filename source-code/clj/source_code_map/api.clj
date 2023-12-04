@@ -6,8 +6,11 @@
 ;; ----------------------------------------------------------------------------
 
 ; source-code-map.core.engine
-(def read-ns-declaration core.engine/read-ns-declaration)
-(def read-ns-deps        core.engine/read-ns-deps)
-(def read-ns-defs        core.engine/read-ns-defs)
-(def read-ns-defns       core.engine/read-ns-defns)
-(def read-ns             core.engine/read-ns)
+(def ns-declaration-map      core.engine/ns-declaration-map)
+(def read-ns-declaration-map core.engine/read-ns-declaration-map)
+(def ns-defs-map             core.engine/ns-defs-map)
+(def read-ns-defs-map        core.engine/read-ns-defs-map)
+(def ns-defns-map            core.engine/ns-defns-map)
+(def read-ns-defns-map       core.engine/read-ns-defns-map)
+(def ns-map                  core.engine/ns-map)
+(def read-ns-map             core.engine/read-ns-map)

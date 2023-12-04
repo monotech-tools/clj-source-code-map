@@ -1,5 +1,5 @@
 
-(ns source-code-map.import.ns-defs
+(ns source-code-map.map.ns-defns
     (:require [map.api     :refer [assoc-by]]
               [seqable.api :refer [last-dex]]
               [vector.api  :as vector]))
@@ -7,7 +7,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-def-name?
+(defn read-defn-name?
   ; @ignore
   ;
   ; @param (vector) result
@@ -16,11 +16,11 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [ending-tag left-sibling-count tag-parent?]}]
-  (and (tag-parent? :def)
+  (and (tag-parent? :defn)
        (-> (ending-tag)         (= :symbol))
        (-> (left-sibling-count) (= 0))))
 
-(defn read-def-name
+(defn read-defn-name
   ; @ignore
   ;
   ; @param (vector) result
@@ -35,7 +35,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn add-def?
+(defn add-defn?
   ; @ignore
   ;
   ; @param (vector) result
@@ -44,9 +44,9 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [starting-tag]}]
-  (-> (starting-tag) (= :def)))
+  (-> (starting-tag) (= :defn)))
 
-(defn add-def
+(defn add-defn
   ; @ignore
   ;
   ; @param (vector) result
@@ -57,7 +57,7 @@
   [result _ _]
   (vector/conj-item result {}))
 
-(defn close-def?
+(defn close-defn?
   ; @ignore
   ;
   ; @param (vector) result
@@ -66,9 +66,9 @@
   ;
   ; @return (boolean)
   [_ _ {:keys [ending-tag]}]
-  (-> (ending-tag) (= :def)))
+  (-> (ending-tag) (= :defn)))
 
-(defn close-def
+(defn close-defn
   ; @ignore
   ;
   ; @param (vector) result
@@ -77,13 +77,13 @@
   ;
   ; @return (vector)
   [result {:keys [cursor]} {:keys [tag-started-at]}]
-  (let [started-at (tag-started-at :def)]
+  (let [started-at (tag-started-at :defn)]
        (assoc-by result [last-dex :bounds] [started-at cursor])))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-ns-defs
+(defn map-ns-defns
   ; @ignore
   ;
   ; @param (vector) result
@@ -92,7 +92,7 @@
   ;
   ; @return (vector)
   [result state metafunctions]
-  (cond (add-def?       result state metafunctions) (add-def       result state metafunctions)
-        (read-def-name? result state metafunctions) (read-def-name result state metafunctions)
-        (close-def?     result state metafunctions) (close-def     result state metafunctions)
+  (cond (add-defn?       result state metafunctions) (add-defn       result state metafunctions)
+        (read-defn-name? result state metafunctions) (read-defn-name result state metafunctions)
+        (close-defn?     result state metafunctions) (close-defn     result state metafunctions)
         :return result))

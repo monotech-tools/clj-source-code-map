@@ -1,20 +1,44 @@
 
 (ns source-code-map.core.engine
-    (:require [io.api                          :as io]
-              [source-code-map.core.config     :as core.config]
-              [source-code-map.import.ns-declaration :as import.ns-declaration]
-              [source-code-map.import.ns-defns :as import.ns-defns]
-              [source-code-map.import.ns-defs  :as import.ns-defs]
-              [source-code-map.import.ns-deps  :as import.ns-deps]
-              [syntax-interpreter.api               :as syntax-interpreter]
-              [vector.api                      :as vector]))
+    (:require [io.api                             :as io]
+              [source-code-map.core.config        :as core.config]
+              [source-code-map.map.ns-declaration :as map.ns-declaration]
+              [source-code-map.map.ns-defns       :as map.ns-defns]
+              [source-code-map.map.ns-defs        :as map.ns-defs]
+              [syntax-interpreter.api             :as syntax-interpreter]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-ns-declaration
+(defn ns-declaration-map
   ; @description
-  ; Reads the (first) namespace declaration in the file found on the given filepath.
+  ; Returns the namespace declaration map of the (first) namespace in the given 'file-content'.
+  ;
+  ; @param (string) file-content
+  ;
+  ; @return (map)
+  ; {:bounds (integers in vector)
+  ;  :import (map)
+  ;   {:bounds (integers in vector)
+  ;    :deps (maps in vector)}
+  ;  :name (string)
+  ;  :require (map)
+  ;   {:bounds (integers in vector)
+  ;    :deps (maps in vector)}
+  ;  :use (map)
+  ;   {:bounds (integers in vector)
+  ;    :deps (maps in vector)}}
+  [file-content]
+  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :keyword :list :map :regex :string :symbol :vector :ns :import :require :use])]
+       (letfn [(f0 [result state {:keys [stop tag-left-count] :as metafunctions}]
+                   (if (-> :ns tag-left-count (= 1))
+                       (-> result (stop)) ; <- Stops when the first ns declaration is over
+                       (-> result (map.ns-declaration/map-ns-declaration state metafunctions))))]
+              (syntax-interpreter/interpreter file-content f0 {} tag-patterns))))
+
+(defn read-ns-declaration-map
+  ; @description
+  ; Returns the namespace declaration map of the (first) namespace in the file found on the given filepath.
   ;
   ; @param (string) filepath
   ;
@@ -31,81 +55,78 @@
   ;   {:bounds (integers in vector)
   ;    :deps (maps in vector)}}
   [filepath]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :keyword :list :map :regex :string :symbol :vector :ns :import :require :use])]
-       (if-let [file-content (io/read-file filepath {:warn? true})]
-               (letfn [(f0 [result state {:keys [stop tag-left-count] :as metafunctions}]
-                           (if (-> :ns tag-left-count (= 1))
-                               (-> result (stop)) ; <- Stops when the first ns declaration is over
-                               (-> result (import.ns-declaration/read-ns-declaration state metafunctions))))]
-                      (syntax-interpreter/interpreter file-content f0 {} tag-patterns)))))
+  (if-let [file-content (io/read-file filepath {:warn? true})]
+          (ns-declaration-map file-content)))
 
-(defn read-ns-deps
-  ; @description
-  ; Reads the dependencies of the (first) namespace declaration in the file found on the given filepath.
-  ;
-  ; @param (string) filepath
-  ;
-  ; @return (map)
-  ; {:import (map)
-  ;   {:bounds (integers in vector)
-  ;    :deps (maps in vector)}
-  ;  :require (map)
-  ;   {:bounds (integers in vector)
-  ;    :deps (maps in vector)}
-  ;  :use (map)
-  ;   {:bounds (integers in vector)
-  ;    :deps (maps in vector)}}
-  [filepath]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :keyword :list :map :regex :string :symbol :vector :ns :import :require :use])]
-       (if-let [file-content (io/read-file filepath {:warn? true})]
-               (letfn [(f0 [result state {:keys [stop tag-left-count] :as metafunctions}]
-                           (if (-> :ns tag-left-count (= 1))
-                               (-> result (stop)) ; <- Stops when the first ns declaration is over
-                               (-> result (import.ns-deps/read-ns-deps state metafunctions))))]
-                      (syntax-interpreter/interpreter file-content f0 {} tag-patterns)))))
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
-(defn read-ns-defs
+(defn ns-defs-map
   ; @description
-  ; Reads the def macros of the (first) namespace in the file found on the given filepath.
+  ; Returns the def macros map of the (first) namespace in the given 'file-content'.
   ;
-  ; @param (string) filepath
+  ; @param (string) file-content
   ;
   ; @return (vector)
-  [filepath]
+  [file-content]
   (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :list :regex :string :symbol :ns :def])]
-       (if-let [file-content (io/read-file filepath {:warn? true})]
-               (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
-                           (if (-> :ns tag-met-count (= 2))
-                               (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
-                               (-> result (import.ns-defs/read-ns-defs state metafunctions))))]
-                      (syntax-interpreter/interpreter file-content f0 [] tag-patterns)))))
+       (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
+                   (if (-> :ns tag-met-count (= 2))
+                       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
+                       (-> result (map.ns-defs/map-ns-defs state metafunctions))))]
+              (syntax-interpreter/interpreter file-content f0 [] tag-patterns))))
 
-(defn read-ns-defns
+(defn read-ns-defs-map
   ; @description
-  ; Reads the defn macros of the (first) namespace in the file found on the given filepath.
+  ; Returns the def macros map of the (first) namespace in the file found on the given filepath.
   ;
   ; @param (string) filepath
   ;
   ; @return (vector)
   [filepath]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :list :regex :string :symbol :ns :defn])]
-       (if-let [file-content (io/read-file filepath {:warn? true})]
-               (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
-                           (if (-> :ns tag-met-count (= 2))
-                               (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
-                               (-> result (import.ns-defns/read-ns-defns state metafunctions))))]
-                      (syntax-interpreter/interpreter file-content f0 [] tag-patterns)))))
+  (if-let [file-content (io/read-file filepath {:warn? true})]
+          (ns-defs-map file-content)))
 
-(defn read-ns
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+(defn ns-defns-map
   ; @description
-  ; Reads the declaration with dependencies, def macros and defn macros of the (first) namespace in the file found on the given filepath.
+  ; Returns the defn macros map of the (first) namespace in the given 'file-content'.
+  ;
+  ; @param (string) file-content
+  ;
+  ; @return (vector)
+  [file-content]
+  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :list :regex :string :symbol :ns :defn])]
+       (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
+                   (if (-> :ns tag-met-count (= 2))
+                       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
+                       (-> result (map.ns-defns/map-ns-defns state metafunctions))))]
+              (syntax-interpreter/interpreter file-content f0 [] tag-patterns))))
+
+(defn read-ns-defns-map
+  ; @description
+  ; Returns the defn macros map of the (first) namespace in the file found on the given filepath.
   ;
   ; @param (string) filepath
   ;
+  ; @return (vector)
+  [filepath]
+  (if-let [file-content (io/read-file filepath {:warn? true})]
+          (ns-defns-map file-content)))
+
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+(defn ns-map
+  ; @description
+  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the given 'file-content'.
+  ;
+  ; @param (string) file-content
+  ;
   ; @return (map)
-  ; {:defs (maps in vector)
-  ;  :defns (maps in vector)
-  ;  :ns (map)
+  ; {:declaration (map)
   ;   {:bounds (integers in vector)
   ;    :import (map)
   ;     {:bounds (integers in vector)
@@ -116,14 +137,40 @@
   ;      :deps (maps in vector)}
   ;    :use (map)
   ;     {:bounds (integers in vector)
-  ;      :deps (maps in vector)}}}
-  [filepath]
+  ;      :deps (maps in vector)}}
+  ;  :defs (maps in vector)
+  ;  :defns (maps in vector)}
+  [file-content]
   (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :keyword :list :map :regex :string :symbol :vector :ns :import :require :use :def :defn])]
-       (if-let [file-content (io/read-file filepath {:warn? true})]
-               (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
-                           (if (-> :ns tag-met-count (= 2))
-                               (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
-                               (-> result (update :ns    import.ns-declaration/read-ns-declaration state metafunctions)
-                                          (update :defs  import.ns-defs/read-ns-defs               state metafunctions)
-                                          (update :defns import.ns-defns/read-ns-defns             state metafunctions))))]
-                      (syntax-interpreter/interpreter file-content f0 {} tag-patterns)))))
+       (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
+                   (if (-> :ns tag-met-count (= 2))
+                       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
+                       (-> result (update :declaration map.ns-declaration/map-ns-declaration state metafunctions)
+                                  (update :defs        map.ns-defs/map-ns-defs               state metafunctions)
+                                  (update :defns       map.ns-defns/map-ns-defns             state metafunctions))))]
+              (syntax-interpreter/interpreter file-content f0 {} tag-patterns))))
+
+(defn read-ns-map
+  ; @description
+  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the file found on the given filepath.
+  ;
+  ; @param (string) filepath
+  ;
+  ; @return (map)
+  ; {:declaration (map)
+  ;   {:bounds (integers in vector)
+  ;    :import (map)
+  ;     {:bounds (integers in vector)
+  ;      :deps (maps in vector)}
+  ;    :name (string)
+  ;    :require (map)
+  ;     {:bounds (integers in vector)
+  ;      :deps (maps in vector)}
+  ;    :use (map)
+  ;     {:bounds (integers in vector)
+  ;      :deps (maps in vector)}}
+  ;  :defs (maps in vector)
+  ;  :defns (maps in vector)}
+  [filepath]
+  (if-let [file-content (io/read-file filepath {:warn? true})]
+          (ns-map file-content)))

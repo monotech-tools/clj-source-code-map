@@ -12,6 +12,7 @@
      ; - The ':list', ':map' and ':vector' patterns ensure that the brace, bracket and parenthesis openings and closings are processed accuratelly.
      ; - The '{:priority :high}' setting ensures that the patterns of functions, macros and namespace directives have higher priority than the ':list' and ':vector' patterns.
      ; - The ':pattern-limits' settings help decrease the interpreter processing time.
+     ; - The ':comment', ':regex', and ':string' patterns ensures that the commented / quoted parts are not processed.
      {:comment       (:comment syntax-interpreter/CLJ-PATTERNS)
       :keyword       (:keyword syntax-interpreter/CLJ-PATTERNS)
       :list          (:list    syntax-interpreter/CLJ-PATTERNS)
