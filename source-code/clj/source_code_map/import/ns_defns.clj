@@ -1,6 +1,6 @@
 
 (ns source-code-map.import.ns-defns
-    (:require [map.api     :refer [assoc-by update-by]]
+    (:require [map.api     :refer [assoc-by]]
               [seqable.api :refer [last-dex]]
               [vector.api  :as vector]))
 
@@ -10,27 +10,27 @@
 (defn read-defn-name?
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [ending-tag left-sibling-count tag-opened?]}]
-  (and (tag-opened? :defn)
+  [_ _ {:keys [ending-tag left-sibling-count tag-parent?]}]
+  (and (tag-parent? :defn)
        (-> (ending-tag)         (= :symbol))
-       (-> (left-sibling-count) (= 1))))
+       (-> (left-sibling-count) (= 0))))
 
 (defn read-defn-name
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
-  ; @return (map)
-  [result state {:keys [tag-body] :as metafunctions}]
+  ; @return (vector)
+  [result _ {:keys [tag-body]}]
   (let [left-symbol (tag-body :symbol)]
-       (assoc-by result [:defn last-dex :name] left-symbol)))
+       (assoc-by result [last-dex :name] left-symbol)))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -38,7 +38,7 @@
 (defn add-defn?
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
@@ -49,18 +49,18 @@
 (defn add-defn
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
-  ; @return (map)
-  [result state metafunctions]
-  (update result :defn vector/conj-item {}))
+  ; @return (vector)
+  [result _ _]
+  (vector/conj-item result {}))
 
 (defn close-defn?
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
@@ -71,51 +71,28 @@
 (defn close-defn
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
-  ; @return (map)
-  [result {:keys [cursor] :as state} {:keys [tag-started-at] :as metafunctions}]
+  ; @return (vector)
+  [result {:keys [cursor]} {:keys [tag-started-at]}]
   (let [started-at (tag-started-at :defn)]
-       (assoc-by result [:defn last-dex :bounds] [started-at cursor])))
+       (assoc-by result [last-dex :bounds] [started-at cursor])))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
-
-(defn stop-reading?
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (boolean)
-  [_ _ {:keys [tag-met-count]}]
-  (= 2 (tag-met-count :ns)))
-
-(defn stop-reading
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (boolean)
-  [result _ {:keys [stop]}]
-  (stop result))
 
 (defn read-ns-defns
   ; @ignore
   ;
-  ; @param (map) result
+  ; @param (vector) result
   ; @param (map) state
   ; @param (map) metafunctions
   ;
-  ; @return (map)
+  ; @return (vector)
   [result state metafunctions]
   (cond (add-defn?       result state metafunctions) (add-defn       result state metafunctions)
         (read-defn-name? result state metafunctions) (read-defn-name result state metafunctions)
         (close-defn?     result state metafunctions) (close-defn     result state metafunctions)
-        (stop-reading?   result state metafunctions) (stop-reading   result state metafunctions)
         :return result))

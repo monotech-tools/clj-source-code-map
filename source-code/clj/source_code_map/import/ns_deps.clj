@@ -98,35 +98,6 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn read-ns-name?
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (boolean)
-  [_ _ {:keys [depth ending-tag left-sibling-count tag-opened?]}]
-  (and (tag-opened? :ns)
-       (-> (ending-tag)         (= :symbol))
-       (-> (left-sibling-count) (= 0))
-       (-> (depth)              (= 1))))
-
-(defn read-ns-name
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (map)
-  [result state {:keys [tag-body] :as metafunctions}]
-  (let [left-symbol (-> :symbol tag-body)]
-       (assoc result :name left-symbol)))
-
-;; ----------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------
-
 (defn read-ns-libspec-name?
   ; @ignore
   ;
@@ -218,6 +189,34 @@
   (let [ns-directive (ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :only] vector/conj-item left-symbol)))
+
+(defn read-ns-libspec-refer-all?
+  ; @ignore
+  ;
+  ; @param (map) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (boolean)
+  [result _ {:keys [depth tag-opened?]}]
+  (and (tag-opened? :ns)
+       (or (tag-opened? :import)
+           (tag-opened? :require)
+           (tag-opened? :use))
+       (-> (depth)               (= 3))
+       (-> result :left-operator (= :all))))
+
+(defn read-ns-libspec-refer-all
+  ; @ignore
+  ;
+  ; @param (map) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (map)
+  [result state metafunctions]
+  (let [ns-directive (ns-directive result state metafunctions)]
+       (assoc-by result [ns-directive :deps last-dex :refer] :all)))
 
 (defn read-ns-libspec-refer?
   ; @ignore
@@ -405,6 +404,34 @@
   (let [ns-directive (ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :prefixed last-dex :only] vector/conj-item left-symbol)))
+
+(defn read-ns-prefixed-libspec-refer-all?
+  ; @ignore
+  ;
+  ; @param (map) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (boolean)
+  [result _ {:keys [depth tag-opened?]}]
+  (and (tag-opened? :ns)
+       (or (tag-opened? :import)
+           (tag-opened? :require)
+           (tag-opened? :use))
+       (-> (depth)               (= 4))
+       (-> result :left-operator (= :all))))
+
+(defn read-ns-prefixed-libspec-refer-all
+  ; @ignore
+  ;
+  ; @param (map) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (map)
+  [result state metafunctions]
+  (let [ns-directive (ns-directive result state metafunctions)]
+       (assoc-by result [ns-directive :deps last-dex :prefixed last-dex :refer] :all)))
 
 (defn read-ns-prefixed-libspec-refer?
   ; @ignore
@@ -596,54 +623,6 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn close-ns?
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (boolean)
-  [_ _ {:keys [ending-tag]}]
-  (-> (ending-tag) (= :ns)))
-
-(defn close-ns
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (map)
-  [result {:keys [cursor] :as state} {:keys [tag-started-at] :as metafunctions}]
-  (let [started-at (tag-started-at :ns)]
-       (assoc result :bounds [started-at cursor])))
-
-;; ----------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------
-
-(defn stop-reading?
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (boolean)
-  [_ _ {:keys [tag-left-count]}]
-  (= 1 (tag-left-count :ns)))
-
-(defn stop-reading
-  ; @ignore
-  ;
-  ; @param (map) result
-  ; @param (map) state
-  ; @param (map) metafunctions
-  ;
-  ; @return (boolean)
-  [result _ {:keys [stop]}]
-  (stop result))
-
 (defn read-ns-deps
   ; @ignore
   ;
@@ -654,22 +633,21 @@
   ; @return (map)
   [result state metafunctions]
   (let [result (handle-ns-directive-operators result state metafunctions)]
-       (cond (read-ns-name?                      result state metafunctions) (read-ns-name                      result state metafunctions)
-             (add-ns-raw-libspec?                result state metafunctions) (add-ns-raw-libspec                result state metafunctions)
-             (add-ns-libspec?                    result state metafunctions) (add-ns-libspec                    result state metafunctions)
-             (read-ns-libspec-name?              result state metafunctions) (read-ns-libspec-name              result state metafunctions)
-             (read-ns-prefixed-raw-libspec-name? result state metafunctions) (read-ns-prefixed-raw-libspec-name result state metafunctions)
-             (read-ns-prefixed-libspec-name?     result state metafunctions) (read-ns-prefixed-libspec-name     result state metafunctions)
-             (read-ns-libspec-alias?             result state metafunctions) (read-ns-libspec-alias             result state metafunctions)
-             (read-ns-prefixed-libspec-alias?    result state metafunctions) (read-ns-prefixed-libspec-alias    result state metafunctions)
-             (read-ns-libspec-only?              result state metafunctions) (read-ns-libspec-only              result state metafunctions)
-             (read-ns-prefixed-libspec-only?     result state metafunctions) (read-ns-prefixed-libspec-only     result state metafunctions)
-             (read-ns-libspec-refer?             result state metafunctions) (read-ns-libspec-refer             result state metafunctions)
-             (read-ns-prefixed-libspec-refer?    result state metafunctions) (read-ns-prefixed-libspec-refer    result state metafunctions)
-             (read-ns-libspec-rename?            result state metafunctions) (read-ns-libspec-rename            result state metafunctions)
-             (read-ns-prefixed-libspec-rename?   result state metafunctions) (read-ns-prefixed-libspec-rename   result state metafunctions)
-             (close-ns-libspec?                  result state metafunctions) (close-ns-libspec                  result state metafunctions)
-             (close-ns-directive?                result state metafunctions) (close-ns-directive                result state metafunctions)
-             (close-ns?                          result state metafunctions) (close-ns                          result state metafunctions)
-             (stop-reading?                      result state metafunctions) (stop-reading                      result state metafunctions)
+       (cond (add-ns-raw-libspec?                 result state metafunctions) (add-ns-raw-libspec                 result state metafunctions)
+             (add-ns-libspec?                     result state metafunctions) (add-ns-libspec                     result state metafunctions)
+             (read-ns-libspec-name?               result state metafunctions) (read-ns-libspec-name               result state metafunctions)
+             (read-ns-prefixed-raw-libspec-name?  result state metafunctions) (read-ns-prefixed-raw-libspec-name  result state metafunctions)
+             (read-ns-prefixed-libspec-name?      result state metafunctions) (read-ns-prefixed-libspec-name      result state metafunctions)
+             (read-ns-libspec-alias?              result state metafunctions) (read-ns-libspec-alias              result state metafunctions)
+             (read-ns-prefixed-libspec-alias?     result state metafunctions) (read-ns-prefixed-libspec-alias     result state metafunctions)
+             (read-ns-libspec-only?               result state metafunctions) (read-ns-libspec-only               result state metafunctions)
+             (read-ns-prefixed-libspec-only?      result state metafunctions) (read-ns-prefixed-libspec-only      result state metafunctions)
+             (read-ns-libspec-refer?              result state metafunctions) (read-ns-libspec-refer              result state metafunctions)
+             (read-ns-libspec-refer-all?          result state metafunctions) (read-ns-libspec-refer-all          result state metafunctions)
+             (read-ns-prefixed-libspec-refer?     result state metafunctions) (read-ns-prefixed-libspec-refer     result state metafunctions)
+             (read-ns-prefixed-libspec-refer-all? result state metafunctions) (read-ns-prefixed-libspec-refer-all result state metafunctions)
+             (read-ns-libspec-rename?             result state metafunctions) (read-ns-libspec-rename             result state metafunctions)
+             (read-ns-prefixed-libspec-rename?    result state metafunctions) (read-ns-prefixed-libspec-rename    result state metafunctions)
+             (close-ns-libspec?                   result state metafunctions) (close-ns-libspec                   result state metafunctions)
+             (close-ns-directive?                 result state metafunctions) (close-ns-directive                 result state metafunctions)
              :return result)))
