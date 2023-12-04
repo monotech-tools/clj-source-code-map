@@ -6,5 +6,7 @@
 ;; ----------------------------------------------------------------------------
 
 ; source-code-map.core.engine
-(def read-source-file  core.engine/read-source-file)
-(def read-source-files core.engine/read-source-files)
+(def read-ns-deps  core.engine/read-ns-deps)
+(def read-ns-defs  core.engine/read-ns-defs)
+(def read-ns-defns core.engine/read-ns-defns)
+(def read-ns       core.engine/read-ns)
