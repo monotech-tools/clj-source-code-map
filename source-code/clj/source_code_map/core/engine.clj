@@ -1,5 +1,6 @@
 
 (ns source-code-map.core.engine
+    (:refer-clojure :exclude [ns-map])
     (:require [io.api                             :as io]
               [source-code-map.core.config        :as core.config]
               [source-code-map.map.ns-declaration :as map.ns-declaration]
@@ -29,7 +30,7 @@
   ;   {:bounds (integers in vector)
   ;    :deps (maps in vector)}}
   [file-content]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :keyword :list :map :regex :string :symbol :vector :ns :import :require :use])]
+  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :keyword :list :map :regex :string :symbol :vector :ns :import :require :use])]
        (letfn [(f0 [result state {:keys [stop tag-left-count] :as metafunctions}]
                    (if (-> :ns tag-left-count (= 1))
                        (-> result (stop)) ; <- Stops when the first ns declaration is over
@@ -69,7 +70,7 @@
   ;
   ; @return (vector)
   [file-content]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :list :regex :string :symbol :ns :def])]
+  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :list :regex :string :symbol :ns :def])]
        (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
                    (if (-> :ns tag-met-count (= 2))
                        (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
@@ -98,7 +99,7 @@
   ;
   ; @return (vector)
   [file-content]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :list :regex :string :symbol :ns :defn])]
+  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :list :regex :string :symbol :ns :defn])]
        (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
                    (if (-> :ns tag-met-count (= 2))
                        (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
@@ -141,7 +142,7 @@
   ;  :defs (maps in vector)
   ;  :defns (maps in vector)}
   [file-content]
-  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :keyword :list :map :regex :string :symbol :vector :ns :import :require :use :def :defn])]
+  (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :keyword :list :map :regex :string :symbol :vector :ns :import :require :use :def :defn])]
        (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
                    (if (-> :ns tag-met-count (= 2))
                        (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration

@@ -62,7 +62,7 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [ending-tag tag-opened?]}]
+  [_ x {:keys [ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
        (or (tag-opened? :import)
            (tag-opened? :require)
@@ -313,7 +313,7 @@
   [result state {:keys [tag-body] :as metafunctions}]
   (let [ns-directive (ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
-       (update-by result [ns-directive :deps last-dex :prefixed] vector/conj-item {:name left-symbol})))
+       (update-by result [ns-directive :deps last-dex :prefixed] vector/conj-item {:name left-symbol :raw? true})))
 
 (defn read-ns-prefixed-libspec-name?
   ; @ignore
@@ -588,7 +588,7 @@
   [result state {:keys [tag-body] :as metafunctions}]
   (let [ns-directive (ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
-       (update-in result [ns-directive :deps] vector/conj-item {:name left-symbol})))
+       (update-in result [ns-directive :deps] vector/conj-item {:name left-symbol :raw? true})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------

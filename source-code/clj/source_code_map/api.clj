@@ -1,5 +1,6 @@
 
 (ns source-code-map.api
+    (:refer-clojure :exclude [ns-map])
     (:require [source-code-map.core.engine :as core.engine]))
 
 ;; ----------------------------------------------------------------------------
