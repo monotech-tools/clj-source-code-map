@@ -31,10 +31,10 @@
   ;    :deps (maps in vector)}}
   [file-content]
   (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :keyword :list :map :regex :string :symbol :vector :ns :import :require :use])]
-       (letfn [(f0 [result state {:keys [stop tag-left-count] :as metafunctions}]
-                   (if (-> :ns tag-left-count (= 1))
-                       (-> result (stop)) ; <- Stops when the first ns declaration is over
-                       (-> result (map.ns-declaration/map-ns-declaration state metafunctions))))]
+       (letfn [(f0 [result state {:keys [stop tag-left-count tag-opened?] :as metafunctions}]
+                   (cond (-> :ns tag-left-count (= 1)) (-> result (stop)) ; <- Stops when the first ns declaration is over
+                         (-> :conditional tag-opened?) (-> result)        ; <- Skips processing conditional forms
+                         :map-ns-declaration           (-> result (map.ns-declaration/map-ns-declaration state metafunctions))))]
               (syntax-interpreter/interpreter file-content f0 {} tag-patterns))))
 
 (defn read-ns-declaration-map
@@ -71,10 +71,10 @@
   ; @return (vector)
   [file-content]
   (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :list :regex :string :symbol :ns :def])]
-       (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
-                   (if (-> :ns tag-met-count (= 2))
-                       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
-                       (-> result (map.ns-defs/map-ns-defs state metafunctions))))]
+       (letfn [(f0 [result state {:keys [stop tag-met-count tag-opened?] :as metafunctions}]
+                   (cond (-> :ns tag-met-count (= 2))  (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
+                         (-> :conditional tag-opened?) (-> result)        ; <- Skips processing conditional forms
+                         :map-ns-defs                  (-> result (map.ns-defs/map-ns-defs state metafunctions))))]
               (syntax-interpreter/interpreter file-content f0 [] tag-patterns))))
 
 (defn read-ns-defs-map
@@ -100,10 +100,10 @@
   ; @return (vector)
   [file-content]
   (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :list :regex :string :symbol :ns :defn])]
-       (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
-                   (if (-> :ns tag-met-count (= 2))
-                       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
-                       (-> result (map.ns-defns/map-ns-defns state metafunctions))))]
+       (letfn [(f0 [result state {:keys [stop tag-met-count tag-opened?] :as metafunctions}]
+                   (cond (-> :ns tag-met-count (= 2))  (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
+                         (-> :conditional tag-opened?) (-> result)        ; <- Skips processing conditional forms
+                         :map-ns-defns                 (-> result (map.ns-defns/map-ns-defns state metafunctions))))]
               (syntax-interpreter/interpreter file-content f0 [] tag-patterns))))
 
 (defn read-ns-defns-map
@@ -143,12 +143,12 @@
   ;  :defns (maps in vector)}
   [file-content]
   (let [tag-patterns (select-keys core.config/TAG-PATTERNS [:comment :conditional :keyword :list :map :regex :string :symbol :vector :ns :import :require :use :def :defn])]
-       (letfn [(f0 [result state {:keys [stop tag-met-count] :as metafunctions}]
-                   (if (-> :ns tag-met-count (= 2))
-                       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
-                       (-> result (update :declaration map.ns-declaration/map-ns-declaration state metafunctions)
-                                  (update :defs        map.ns-defs/map-ns-defs               state metafunctions)
-                                  (update :defns       map.ns-defns/map-ns-defns             state metafunctions))))]
+       (letfn [(f0 [result state {:keys [stop tag-met-count tag-opened?] :as metafunctions}]
+                   (cond (-> :ns tag-met-count (= 2))  (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
+                         (-> :conditional tag-opened?) (-> result)        ; <- Skips processing conditional forms
+                         :map-ns                       (-> result (update :declaration map.ns-declaration/map-ns-declaration state metafunctions)
+                                                                  (update :defs        map.ns-defs/map-ns-defs               state metafunctions)
+                                                                  (update :defns       map.ns-defns/map-ns-defns             state metafunctions))))]
               (syntax-interpreter/interpreter file-content f0 {} tag-patterns))))
 
 (defn read-ns-map

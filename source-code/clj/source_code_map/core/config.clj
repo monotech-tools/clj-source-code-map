@@ -13,17 +13,17 @@
      ; - The '{:priority :high}' setting ensures that the patterns of functions, macros and namespace directives have higher priority than the ':list' and ':vector' patterns.
      ; - The ':pattern-limits' settings help decrease the interpreter processing time.
      ; - The ':comment', ':regex', and ':string' patterns ensures that the commented / quoted parts are not processed.
-     ; - The ':conditional' pattern with the '{:disable-interpreter? true}' setting ensures that the mapping process can skip the conditional forms in the source code,
+     ; - The ':conditional' pattern ensures that the mapping process can skip the conditional forms in the source code,
      ;   because its too complicated to process them, maybe in later version it will be solved.
-     {:comment       (:comment syntax-interpreter/CLJ-PATTERNS)
-      :keyword       (:keyword syntax-interpreter/CLJ-PATTERNS)
-      :list          (:list    syntax-interpreter/CLJ-PATTERNS)
-      :map           (:map     syntax-interpreter/CLJ-PATTERNS)
-      :regex         (:regex   syntax-interpreter/CLJ-PATTERNS)
-      :string        (:string  syntax-interpreter/CLJ-PATTERNS)
-      :symbol        (:symbol  syntax-interpreter/CLJ-PATTERNS)
-      :vector        (:vector  syntax-interpreter/CLJ-PATTERNS)
-      :conditional   (update (:conditional syntax-interpreter/CLJ-PATTERNS) 2 assoc :disable-interpreter? true)
+     {:comment       (:comment     syntax-interpreter/CLJ-PATTERNS)
+      :conditional   (:conditional syntax-interpreter/CLJ-PATTERNS)
+      :keyword       (:keyword     syntax-interpreter/CLJ-PATTERNS)
+      :list          (:list        syntax-interpreter/CLJ-PATTERNS)
+      :map           (:map         syntax-interpreter/CLJ-PATTERNS)
+      :regex         (:regex       syntax-interpreter/CLJ-PATTERNS)
+      :string        (:string      syntax-interpreter/CLJ-PATTERNS)
+      :symbol        (:symbol      syntax-interpreter/CLJ-PATTERNS)
+      :vector        (:vector      syntax-interpreter/CLJ-PATTERNS)
       :ns            [#"\(ns(?=[\n\r\s\t])"                             #"\)" {:accepted-parents []    :priority :high :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  3 :closing/lookahead 0 :opening/lookahead 1}}]
       :info          [#"\(\:author|\(\:doc|\(\:license(?=[\n\r\s\t\)])" #"\)" {:accepted-parents [:ns] :priority :high :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  9 :closing/lookahead 0 :opening/lookahead 1}}]
       :gen-class     [#"\(\:gen-class(?=[\n\r\s\t\)])"                  #"\)" {:accepted-parents [:ns] :priority :high :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match 11 :closing/lookahead 0 :opening/lookahead 1}}]
