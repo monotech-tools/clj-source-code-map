@@ -15,8 +15,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [ending-tag left-sibling-count tag-parent?]}]
-  (and (tag-parent? :def)
+  [_ _ {:keys [ending-tag left-sibling-count parent-tag]}]
+  (and (-> (parent-tag)         (= :def))
        (-> (ending-tag)         (= :symbol))
        (-> (left-sibling-count) (= 0))))
 
@@ -31,6 +31,62 @@
   [result _ {:keys [tag-body]}]
   (let [left-symbol (tag-body :symbol)]
        (assoc-by result [last-dex :name] left-symbol)))
+
+(defn read-def-meta?
+  ; @ignore
+  ;
+  ; @param (vector) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (boolean)
+  [_ _ {:keys [ending-tag left-sibling-count parent-tag]}]
+  (and (-> (parent-tag)         (= :def))
+       (or (-> (ending-tag)     (= :meta-keyword))
+           (-> (ending-tag)     (= :meta-map))
+           (-> (ending-tag)     (= :meta-string))
+           (-> (ending-tag)     (= :meta-symbol)))
+       (-> (left-sibling-count) (= 1))))
+
+(defn read-def-meta
+  ; @ignore
+  ;
+  ; @param (vector) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (vector)
+  [result _ {:keys [ending-tag tag-body]}]
+  (let [left-type (ending-tag)
+        left-meta (tag-body left-type)]
+       (assoc-by result [last-dex :meta] left-meta)))
+
+(defn read-def-value?
+  ; @ignore
+  ;
+  ; @param (vector) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (boolean)
+  [_ _ {:keys [ending-tag left-sibling-count parent-tag]}]
+  (and (-> (parent-tag)         (= :def))
+       (-> (left-sibling-count) (> 0))
+       (-> (ending-tag))))
+
+(defn read-def-value
+  ; @ignore
+  ;
+  ; @param (vector) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (vector)
+  [result _ {:keys [ending-tag tag-body]}]
+  (let [left-type  (ending-tag)
+        left-value (tag-body left-type)]
+       (-> result (assoc-by [last-dex :type]  left-type)
+                  (assoc-by [last-dex :value] left-value))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -92,7 +148,9 @@
   ;
   ; @return (vector)
   [result state metafunctions]
-  (cond (add-def?       result state metafunctions) (add-def       result state metafunctions)
-        (read-def-name? result state metafunctions) (read-def-name result state metafunctions)
-        (close-def?     result state metafunctions) (close-def     result state metafunctions)
+  (cond (add-def?        result state metafunctions) (add-def        result state metafunctions)
+        (read-def-name?  result state metafunctions) (read-def-name  result state metafunctions)
+        (read-def-meta?  result state metafunctions) (read-def-meta  result state metafunctions)
+        (read-def-value? result state metafunctions) (read-def-value result state metafunctions)
+        (close-def?      result state metafunctions) (close-def      result state metafunctions)
         :return result))

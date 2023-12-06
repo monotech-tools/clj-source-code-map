@@ -22,7 +22,9 @@
   ; @return (keyword)
   ; :import, :require, :use
   [_ _ {:keys [tag-opened?]}]
-  (vector/first-match [:import :require :use] tag-opened?))
+  (cond (-> :import-directive  tag-opened?) :import
+        (-> :require-directive tag-opened?) :require
+        (-> :use-directive     tag-opened?) :use))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -37,9 +39,9 @@
   ; @return (boolean)
   [_ _ {:keys [ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag) (= :keyword))))
 
 (defn read-ns-directive-operator
@@ -64,9 +66,9 @@
   ; @return (boolean)
   [_ x {:keys [ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (or (-> (ending-tag) (= :list))
            (-> (ending-tag) (= :map))
            (-> (ending-tag) (= :vector)))))
@@ -108,9 +110,9 @@
   ; @return (boolean)
   [_ _ {:keys [depth ending-tag left-sibling-count tag-ancestor? tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (or (-> (ending-tag) (= :string))
            (-> (ending-tag) (= :symbol)))
        (-> (depth)              (= 3))
@@ -140,9 +142,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 3))
        (-> result :left-operator (= :as))))
@@ -170,9 +172,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 4))
        (-> result :left-operator (= :only))))
@@ -200,9 +202,9 @@
   ; @return (boolean)
   [result _ {:keys [depth tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (depth)               (= 3))
        (-> result :left-operator (= :all))))
 
@@ -228,9 +230,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 4))
        (-> result :left-operator (= :refer))))
@@ -258,9 +260,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 4))
        (-> result :left-operator (= :rename))))
@@ -294,9 +296,9 @@
   [result state {:keys [depth ending-tag tag-opened?] :as metafunctions}]
   (let [ns-directive (ns-directive result state metafunctions)]
        (and (tag-opened? :ns)
-            (or (tag-opened? :import)
-                (tag-opened? :require)
-                (tag-opened? :use))
+            (or (tag-opened? :import-directive)
+                (tag-opened? :require-directive)
+                (tag-opened? :use-directive))
             (-> (ending-tag) (= :symbol))
             (-> (depth)      (= 3))
             (-> (get-by result [ns-directive :deps last-dex :name]) string/nonempty?)
@@ -325,9 +327,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag) (= :symbol))
        (-> (depth)      (= 4))
        (-> result :left-operator not)))
@@ -355,9 +357,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 4))
        (-> result :left-operator (= :as))))
@@ -385,9 +387,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 5))
        (-> result :left-operator (= :only))))
@@ -415,9 +417,9 @@
   ; @return (boolean)
   [result _ {:keys [depth tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (depth)               (= 4))
        (-> result :left-operator (= :all))))
 
@@ -443,9 +445,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 5))
        (-> result :left-operator (= :refer))))
@@ -473,9 +475,9 @@
   ; @return (boolean)
   [result _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag)          (= :symbol))
        (-> (depth)               (= 5))
        (-> result :left-operator (= :rename))))
@@ -508,9 +510,9 @@
   ; @return (boolean)
   [_ _ {:keys [depth starting-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (or (-> (starting-tag) (= :list))
            (-> (starting-tag) (= :vector)))
        (-> (depth) (= 2))))
@@ -537,9 +539,9 @@
   ; @return (boolean)
   [_ _ {:keys [depth tag-ends? tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (or (tag-ends? :list)
            (tag-ends? :vector))
        (-> (depth) (= 2))))
@@ -571,9 +573,9 @@
   ; @return (boolean)
   [_ _ {:keys [depth ending-tag tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-opened? :import)
-           (tag-opened? :require)
-           (tag-opened? :use))
+       (or (tag-opened? :import-directive)
+           (tag-opened? :require-directive)
+           (tag-opened? :use-directive))
        (-> (ending-tag) (= :symbol))
        (-> (depth)      (= 2))))
 
@@ -603,9 +605,9 @@
   ; @return (boolean)
   [_ _ {:keys [tag-ends? tag-opened?]}]
   (and (tag-opened? :ns)
-       (or (tag-ends? :import)
-           (tag-ends? :require)
-           (tag-ends? :use))))
+       (or (tag-ends? :import-directive)
+           (tag-ends? :require-directive)
+           (tag-ends? :use-directive))))
 
 (defn close-ns-directive
   ; @ignore
@@ -632,6 +634,7 @@
   ;
   ; @return (map)
   [result state metafunctions]
+  (println (dissoc state :left-tags))
   (let [result (handle-ns-directive-operators result state metafunctions)]
        (cond (add-ns-raw-libspec?                 result state metafunctions) (add-ns-raw-libspec                 result state metafunctions)
              (add-ns-libspec?                     result state metafunctions) (add-ns-libspec                     result state metafunctions)

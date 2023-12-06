@@ -15,8 +15,8 @@
   ; @param (map) metafunctions
   ;
   ; @return (boolean)
-  [_ _ {:keys [ending-tag left-sibling-count tag-parent?]}]
-  (and (tag-parent? :defn)
+  [_ _ {:keys [ending-tag left-sibling-count parent-tag]}]
+  (and (-> (parent-tag)         (= :defn))
        (-> (ending-tag)         (= :symbol))
        (-> (left-sibling-count) (= 0))))
 
