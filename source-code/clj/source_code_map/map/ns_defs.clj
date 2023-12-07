@@ -1,8 +1,8 @@
 
 (ns source-code-map.map.ns-defs
-    (:require [map.api     :refer [assoc-by]]
-              [seqable.api :refer [last-dex]]
-              [vector.api  :as vector]))
+    (:require [fruits.map.api     :refer [assoc-by]]
+              [fruits.seqable.api :refer [last-dex]]
+              [fruits.vector.api  :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------

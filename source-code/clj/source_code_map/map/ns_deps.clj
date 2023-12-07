@@ -1,10 +1,10 @@
 
 (ns source-code-map.map.ns-deps
-    (:require [map.api     :refer [assoc-by get-by update-by]]
-              [reader.api  :as reader]
-              [seqable.api :refer [last-dex]]
-              [string.api  :as string]
-              [vector.api  :as vector]))
+    (:require [fruits.map.api     :refer [assoc-by get-by update-by]]
+              [fruits.reader.api  :as reader]
+              [fruits.seqable.api :refer [last-dex]]
+              [fruits.string.api  :as string]
+              [fruits.vector.api  :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
