@@ -14,7 +14,7 @@
      ; - The ':comment', ':regex', and ':string' patterns ensures that the commented / quoted parts are not processed.
      ; - The ':conditional-form' pattern ensures that the mapping process can skip the conditional forms in the source code,
      ;   because its too complicated to process them, maybe in later version it will be solved.
-     [[:with-meta               #"\(with-meta(?=[\n\r\s\t])"                      #"\)" {                        :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match 10 :closing/lookahead 0 :opening/lookahead 1}}]
+     [[:with-meta               #"\(with-meta(?=[\n\r\s\t])"                      #"\)"                         {:pattern-limits {:lookbehind 0              :closing/match 1 :opening/match 10 :closing/lookahead 0 :opening/lookahead 1}}]
       [:ns                      #"\(ns(?=[\n\r\s\t])"                             #"\)" {:accepted-parents []    :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  3 :closing/lookahead 0 :opening/lookahead 1}}]
       [:gen-class-directive     #"\(\:gen-class(?=[\n\r\s\t\)])"                  #"\)" {:accepted-parents [:ns] :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match 11 :closing/lookahead 0 :opening/lookahead 1}}]
       [:info-directive          #"\(\:author|\(\:doc|\(\:license(?=[\n\r\s\t\)])" #"\)" {:accepted-parents [:ns] :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  9 :closing/lookahead 0 :opening/lookahead 1}}]
@@ -22,10 +22,10 @@
       [:import-directive        #"\(\:import(?=[\n\r\s\t])"                       #"\)" {:accepted-parents [:ns] :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  8 :closing/lookahead 0 :opening/lookahead 1}}]
       [:require-directive       #"\(\:require(?=[\n\r\s\t])"                      #"\)" {:accepted-parents [:ns] :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  9 :closing/lookahead 0 :opening/lookahead 1}}]
       [:use-directive           #"\(\:use(?=[\n\r\s\t])"                          #"\)" {:accepted-parents [:ns] :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  5 :closing/lookahead 0 :opening/lookahead 1}}]
-      [:def                     #"\(def(?=[\n\r\s\t])"                            #"\)" {:accepted-parents []    :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  4 :closing/lookahead 0 :opening/lookahead 1}}]
-      [:defn                    #"\(defn[\-]{0,}(?=[\n\r\s\t])"                   #"\)" {:accepted-parents []    :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  6 :closing/lookahead 0 :opening/lookahead 1}}]
-      [:anfn                    #"\(fn(?=[\n\r\s\t])"                             #"\)" {                        :pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  3 :closing/lookahead 0 :opening/lookahead 1}}]
-      [:anfn-s                  #"\#\("                                           #"\)" {                        :pattern-limits {:lookbehind 0 :lookahead 0 :closing/match 1 :opening/match  2}}]
+      [:def                     #"\(def(?=[\n\r\s\t])"                            #"\)"                         {:pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  4 :closing/lookahead 0 :opening/lookahead 1}}]
+      [:defn                    #"\(defn[\-]{0,}(?=[\n\r\s\t])"                   #"\)"                         {:pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  6 :closing/lookahead 0 :opening/lookahead 1}}]
+      [:anfn                    #"\(fn(?=[\n\r\s\t])"                             #"\)"                         {:pattern-limits {:lookbehind 0              :closing/match 1 :opening/match  3 :closing/lookahead 0 :opening/lookahead 1}}]
+      [:anfn-s                  #"\#\("                                           #"\)"                         {:pattern-limits {:lookbehind 0 :lookahead 0 :closing/match 1 :opening/match  2}}]
       (:boolean          syntax-interpreter/CLJ-PATTERNS)
       (:comment          syntax-interpreter/CLJ-PATTERNS)
       (:conditional-form syntax-interpreter/CLJ-PATTERNS)

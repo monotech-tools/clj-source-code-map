@@ -9,11 +9,11 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn ns-directive
+(defn opened-ns-directive
   ; @ignore
   ;
   ; @description
-  ; Returns the actual namespace directive opened (if any).
+  ; Returns the actual opened namespace directive (if any).
   ;
   ; @param (map) result
   ; @param (map) state
@@ -25,6 +25,23 @@
   (cond (-> :import-directive  tag-opened?) :import
         (-> :require-directive tag-opened?) :require
         (-> :use-directive     tag-opened?) :use))
+
+(defn ending-ns-directive
+  ; @ignore
+  ;
+  ; @description
+  ; Returns the actual ending namespace directive (if any).
+  ;
+  ; @param (map) result
+  ; @param (map) state
+  ; @param (map) metafunctions
+  ;
+  ; @return (keyword)
+  ; :import, :require, :use
+  [_ _ {:keys [tag-ends?]}]
+  (cond (-> :import-directive  tag-ends?) :import
+        (-> :require-directive tag-ends?) :require
+        (-> :use-directive     tag-ends?) :use))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -127,7 +144,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (or (tag-body :string)
                          (tag-body :symbol))]
        (assoc-by result [ns-directive :deps last-dex :name] left-symbol)))
@@ -158,7 +175,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (assoc-by result [ns-directive :deps last-dex :alias] left-symbol)))
 
@@ -188,7 +205,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :only] vector/conj-item left-symbol)))
 
@@ -217,7 +234,7 @@
   ;
   ; @return (map)
   [result state metafunctions]
-  (let [ns-directive (ns-directive result state metafunctions)]
+  (let [ns-directive (opened-ns-directive result state metafunctions)]
        (assoc-by result [ns-directive :deps last-dex :refer] :all)))
 
 (defn read-ns-libspec-refer?
@@ -246,7 +263,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :refer] vector/conj-item left-symbol)))
 
@@ -276,7 +293,7 @@
   ;
   ; @return (map)
   [result state {:keys [left-sibling-count tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (if (-> (left-sibling-count) even?)
            (update-by result [ns-directive :deps last-dex :rename]          vector/conj-item [left-symbol])
@@ -294,7 +311,7 @@
   ;
   ; @return (boolean)
   [result state {:keys [depth ending-tag tag-opened?] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)]
+  (let [ns-directive (opened-ns-directive result state metafunctions)]
        (and (tag-opened? :ns)
             (or (tag-opened? :import-directive)
                 (tag-opened? :require-directive)
@@ -313,7 +330,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :prefixed] vector/conj-item {:name left-symbol :raw? true})))
 
@@ -343,7 +360,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :prefixed] vector/conj-item {:name left-symbol})))
 
@@ -373,7 +390,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (assoc-by result [ns-directive :deps last-dex :prefixed last-dex :alias] left-symbol)))
 
@@ -403,7 +420,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :prefixed last-dex :only] vector/conj-item left-symbol)))
 
@@ -432,7 +449,7 @@
   ;
   ; @return (map)
   [result state metafunctions]
-  (let [ns-directive (ns-directive result state metafunctions)]
+  (let [ns-directive (opened-ns-directive result state metafunctions)]
        (assoc-by result [ns-directive :deps last-dex :prefixed last-dex :refer] :all)))
 
 (defn read-ns-prefixed-libspec-refer?
@@ -461,7 +478,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-by result [ns-directive :deps last-dex :prefixed last-dex :refer] vector/conj-item left-symbol)))
 
@@ -491,7 +508,7 @@
   ;
   ; @return (map)
   [result state {:keys [left-sibling-count tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (if (-> (left-sibling-count) even?)
            (update-by result [ns-directive :deps last-dex :prefixed last-dex :rename]          vector/conj-item [left-symbol])
@@ -526,7 +543,7 @@
   ;
   ; @return (map)
   [result state metafunctions]
-  (let [ns-directive (ns-directive result state metafunctions)]
+  (let [ns-directive (opened-ns-directive result state metafunctions)]
        (update-in result [ns-directive :deps] vector/conj-item {})))
 
 (defn close-ns-libspec?
@@ -555,7 +572,7 @@
   ;
   ; @return (map)
   [result {:keys [cursor] :as state} {:keys [ending-tag tag-started-at] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         libspec-type (ending-tag)
         started-at   (tag-started-at libspec-type)]
        (assoc-by result [ns-directive :deps last-dex :bounds] [started-at cursor])))
@@ -588,7 +605,7 @@
   ;
   ; @return (map)
   [result state {:keys [tag-body] :as metafunctions}]
-  (let [ns-directive (ns-directive result state metafunctions)
+  (let [ns-directive (opened-ns-directive result state metafunctions)
         left-symbol  (tag-body :symbol)]
        (update-in result [ns-directive :deps] vector/conj-item {:name left-symbol :raw? true})))
 
@@ -617,9 +634,9 @@
   ; @param (map) metafunctions
   ;
   ; @return (map)
-  [result {:keys [cursor]} {:keys [ending-tag tag-started-at]}]
-  (let [ns-directive (ending-tag)
-        started-at   (tag-started-at ns-directive)]
+  [result {:keys [cursor] :as state} {:keys [ending-tag tag-started-at] :as metafunctions}]
+  (let [ns-directive (ending-ns-directive result state metafunctions)
+        started-at   (tag-started-at (ending-tag))]
        (assoc-in result [ns-directive :bounds] [started-at cursor])))
 
 ;; ----------------------------------------------------------------------------
@@ -634,7 +651,6 @@
   ;
   ; @return (map)
   [result state metafunctions]
-  (println (dissoc state :left-tags))
   (let [result (handle-ns-directive-operators result state metafunctions)]
        (cond (add-ns-raw-libspec?                 result state metafunctions) (add-ns-raw-libspec                 result state metafunctions)
              (add-ns-libspec?                     result state metafunctions) (add-ns-libspec                     result state metafunctions)

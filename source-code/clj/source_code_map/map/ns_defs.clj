@@ -56,10 +56,11 @@
   ; @param (map) metafunctions
   ;
   ; @return (vector)
-  [result _ {:keys [ending-tag tag-body]}]
-  (let [left-type (ending-tag)
-        left-meta (tag-body left-type)]
-       (assoc-by result [last-dex :meta] left-meta)))
+  [result {:keys [cursor]} {:keys [ending-tag tag-started-at]}]
+  (let [left-type       (ending-tag)
+        meta-started-at (tag-started-at left-type)]
+       (-> result (assoc-by [last-dex :meta :type]   left-type)
+                  (assoc-by [last-dex :meta :bounds] [meta-started-at cursor]))))
 
 (defn read-def-value?
   ; @ignore
@@ -82,11 +83,11 @@
   ; @param (map) metafunctions
   ;
   ; @return (vector)
-  [result _ {:keys [ending-tag tag-body]}]
-  (let [left-type  (ending-tag)
-        left-value (tag-body left-type)]
-       (-> result (assoc-by [last-dex :type]  left-type)
-                  (assoc-by [last-dex :value] left-value))))
+  [result {:keys [cursor]} {:keys [ending-tag tag-started-at]}]
+  (let [left-type        (ending-tag)
+        value-started-at (tag-started-at left-type)]
+       (-> result (assoc-by [last-dex :value :type]   left-type)
+                  (assoc-by [last-dex :value :bounds] [value-started-at cursor]))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------

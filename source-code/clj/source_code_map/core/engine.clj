@@ -21,7 +21,9 @@
   ; {:bounds (integers in vector)
   ;  :import (map)
   ;   {:bounds (integers in vector)
-  ;    :deps (maps in vector)}
+  ;    :deps (maps in vector)
+  ;     [(map) dep
+  ;       {...}]}
   ;  :name (string)
   ;  :require (map)
   ;   {:bounds (integers in vector)
@@ -46,7 +48,9 @@
   ; {:bounds (integers in vector)
   ;  :import (map)
   ;   {:bounds (integers in vector)
-  ;    :deps (maps in vector)}
+  ;    :deps (maps in vector)
+  ;     [(map) dep
+  ;       {...}]}
   ;  :name (string)
   ;  :require (map)
   ;   {:bounds (integers in vector)
@@ -67,7 +71,16 @@
   ;
   ; @param (string) file-content
   ;
-  ; @return (vector)
+  ; @return (maps in vector)
+  ; [(map) def
+  ;   {:bounds (integers in vector)
+  ;    :name (string)
+  ;    :meta (map)
+  ;     {:bounds (integers in vector)
+  ;      :type (keyword)}
+  ;    :value (map)
+  ;     {:bounds (integers in vector)
+  ;      :type (keyword)}}]
   [file-content]
   (letfn [(f0 [result state {:keys [stop tag-met-count tag-opened?] :as metafunctions}]
               (cond (-> :ns tag-met-count (= 2))       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
@@ -81,7 +94,16 @@
   ;
   ; @param (string) filepath
   ;
-  ; @return (vector)
+  ; @return (maps in vector)
+  ; [(map) def
+  ;   {:bounds (integers in vector)
+  ;    :name (string)
+  ;    :meta (map)
+  ;     {:bounds (integers in vector)
+  ;      :type (keyword)}
+  ;    :value (map)
+  ;     {:bounds (integers in vector)
+  ;      :type (keyword)}}]
   [filepath]
   (if-let [file-content (io/read-file filepath {:warn? true})]
           (ns-defs-map file-content)))
@@ -95,7 +117,10 @@
   ;
   ; @param (string) file-content
   ;
-  ; @return (vector)
+  ; @return (maps in vector)
+  ; [(map) def
+  ;   {:bounds (integers in vector)
+  ;    :name (string)}]
   [file-content]
   (letfn [(f0 [result state {:keys [stop tag-met-count tag-opened?] :as metafunctions}]
               (cond (-> :ns tag-met-count (= 2))       (-> result (stop)) ; <- Stops when / if it reaches a second ns declaration
@@ -109,7 +134,10 @@
   ;
   ; @param (string) filepath
   ;
-  ; @return (vector)
+  ; @return (maps in vector)
+  ; [(map) def
+  ;   {:bounds (integers in vector)
+  ;    :name (string)}]
   [filepath]
   (if-let [file-content (io/read-file filepath {:warn? true})]
           (ns-defns-map file-content)))
