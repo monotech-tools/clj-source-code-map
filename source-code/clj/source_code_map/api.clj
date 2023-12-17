@@ -6,7 +6,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-; @redirect (source-code-map.core.engine)
+; @redirect (source-code-map.core.engine/*)
 (def ns-declaration-map      core.engine/ns-declaration-map)
 (def read-ns-declaration-map core.engine/read-ns-declaration-map)
 (def ns-defs-map             core.engine/ns-defs-map)

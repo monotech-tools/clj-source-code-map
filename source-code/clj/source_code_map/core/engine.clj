@@ -13,9 +13,17 @@
 
 (defn ns-declaration-map
   ; @description
-  ; Returns the namespace declaration map of the (first) namespace in the given 'file-content'.
+  ; Returns the namespace declaration map of the (first) namespace in the given 'file-content' string.
   ;
   ; @param (string) file-content
+  ;
+  ; @usage
+  ; (ns-declaration-map "(ns my-namespace ... (:require [another-namespace :as an] ...)) ...")
+  ; =>
+  ; {:bounds  [1 60]
+  ;  :name    "my-namespace"
+  ;  :require {:bounds [22 59]
+  ;            :deps   [{:bounds [32 58] :name "another-namespace" :alias "an"}]}}
   ;
   ; @return (map)
   ; {:bounds (integers in vector)
@@ -40,9 +48,17 @@
 
 (defn read-ns-declaration-map
   ; @description
-  ; Returns the namespace declaration map of the (first) namespace in the file found on the given filepath.
+  ; Returns the namespace declaration map of the (first) namespace in the file at the given filepath.
   ;
   ; @param (string) filepath
+  ;
+  ; @usage
+  ; (ns-declaration-map "source-code/my_namespace.clj")
+  ; =>
+  ; {:bounds  [1 60]
+  ;  :name    "my-namespace"
+  ;  :require {:bounds [22 59]
+  ;            :deps   [{:bounds [32 58] :name "another-namespace" :alias "an"}]}}
   ;
   ; @return (map)
   ; {:bounds (integers in vector)
@@ -67,7 +83,12 @@
 
 (defn ns-defs-map
   ; @description
-  ; Returns the def macros map of the (first) namespace in the given 'file-content'.
+  ; Returns the def macros map of the (first) namespace in the given 'file-content' string.
+  ;
+  ; @usage
+  ; (ns-defs-map "... (def MY-CONSTANT "...") ...")
+  ; =>
+  ; [{:bounds [63 86] :name "MY-CONSTANT" :value {:type :string :bounds [80 85]}} ...]
   ;
   ; @param (string) file-content
   ;
@@ -90,7 +111,12 @@
 
 (defn read-ns-defs-map
   ; @description
-  ; Returns the def macros map of the (first) namespace in the file found on the given filepath.
+  ; Returns the def macros map of the (first) namespace in the file at the given filepath.
+  ;
+  ; @usage
+  ; (ns-defs-map "source-code/my_namespace.clj")
+  ; =>
+  ; [{:bounds [63 86] :name "MY-CONSTANT" :value {:type :string :bounds [80 85]}} ...]
   ;
   ; @param (string) filepath
   ;
@@ -113,9 +139,14 @@
 
 (defn ns-defns-map
   ; @description
-  ; Returns the defn macros map of the (first) namespace in the given 'file-content'.
+  ; Returns the defn macros map of the (first) namespace in the given 'file-content' string.
   ;
   ; @param (string) file-content
+  ;
+  ; @usage
+  ; (ns-defns-map "... (defn my-function [] ...) ...")
+  ; =>
+  ; [{:bounds [88 119] :name "my-function"} ...]
   ;
   ; @return (maps in vector)
   ; [(map) def
@@ -130,9 +161,14 @@
 
 (defn read-ns-defns-map
   ; @description
-  ; Returns the defn macros map of the (first) namespace in the file found on the given filepath.
+  ; Returns the defn macros map of the (first) namespace in the file at the given filepath.
   ;
   ; @param (string) filepath
+  ;
+  ; @usage
+  ; (read-ns-defns-map "source-code/my_namespace.clj")
+  ; =>
+  ; [{:bounds [88 119] :name "my-function"} ...]
   ;
   ; @return (maps in vector)
   ; [(map) def
@@ -147,9 +183,19 @@
 
 (defn ns-map
   ; @description
-  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the given 'file-content'.
+  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the given 'file-content' string.
   ;
   ; @param (string) file-content
+  ;
+  ; @usage
+  ; (ns-map "(ns my-namespace ... (:require [another-namespace :as an] ...)) ... (def MY-CONSTANT "...") ... (defn my-function [] ...) ...")
+  ; =>
+  ; {:declaration {:bounds  [1 60]
+  ;                :name    "my-namespace"
+  ;                :require {:bounds [22 59]
+  ;                          :deps   [{:bounds [32 58] :name "another-namespace" :alias "an"}]}}
+  ;  :defs  [{:bounds [63 86]  :name "MY-CONSTANT" :value {:type :string :bounds [80 85]}} ...]
+  ;  :defns [{:bounds [88 119] :name "my-function"} ...]}
   ;
   ; @return (map)
   ; {:declaration (map)
@@ -177,9 +223,19 @@
 
 (defn read-ns-map
   ; @description
-  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the file found on the given filepath.
+  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the file at the given filepath.
   ;
   ; @param (string) filepath
+  ;
+  ; @usage
+  ; (read-ns-map "source-code/my_namespace.clj")
+  ; =>
+  ; {:declaration {:bounds  [1 60]
+  ;                :name    "my-namespace"
+  ;                :require {:bounds [22 59]
+  ;                          :deps   [{:bounds [32 58] :name "another-namespace" :alias "an"}]}}
+  ;  :defs  [{:bounds [63 86]  :name "MY-CONSTANT" :value {:type :string :bounds [80 85]}} ...]
+  ;  :defns [{:bounds [88 119] :name "my-function"} ...]}
   ;
   ; @return (map)
   ; {:declaration (map)
