@@ -23,7 +23,7 @@
       [:require-directive       #"\(\:require(?=\s)"                        #"\)" {:accepted-parents [:ns] :pattern-limits {:closing/match 1 :opening/match  9 :opening/lookahead 1}}]
       [:use-directive           #"\(\:use(?=\s)"                            #"\)" {:accepted-parents [:ns] :pattern-limits {:closing/match 1 :opening/match  5 :opening/lookahead 1}}]
       [:def                     #"\(def(?=\s)"                              #"\)"                         {:pattern-limits {:closing/match 1 :opening/match  4 :opening/lookahead 1}}]
-      [:defn                    #"\(defn[\-]{0,}(?=\s)"                     #"\)"                         {:pattern-limits {:closing/match 1 :opening/match  6 :opening/lookahead 1}}]
+      [:defn                    #"\(defn[\-]*(?=\s)"                        #"\)"                         {:pattern-limits {:closing/match 1 :opening/match  6 :opening/lookahead 1}}]
       [:anfn                    #"\(fn(?=\s)"                               #"\)"                         {:pattern-limits {:closing/match 1 :opening/match  3 :opening/lookahead 1}}]
       [:anfn-s                  #"\#\("                                     #"\)"                         {:pattern-limits {:closing/match 1 :opening/match  2}}]
       (:boolean          syntax-interpreter/CLJ-PATTERNS)
