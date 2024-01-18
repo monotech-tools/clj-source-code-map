@@ -318,7 +318,7 @@
                 (tag-opened? :use-directive))
             (-> (ending-tag) (= :symbol))
             (-> (depth)      (= 3))
-            (-> (get-by result [ns-directive :deps last-dex :name]) string/nonempty?)
+            (-> (get-by result [ns-directive :deps last-dex :name]) string/not-empty?)
             (-> result :left-operator not))))
 
 (defn read-ns-prefixed-raw-libspec-name
