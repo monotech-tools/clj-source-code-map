@@ -70,7 +70,7 @@
   ;
   ; @return (map)
   [result _ {:keys [tag-body]}]
-  (let [left-keyword (-> :keyword tag-body reader/read-edn)]
+  (let [left-keyword (-> :keyword tag-body reader/parse-edn)]
        (assoc result :left-operator left-keyword)))
 
 (defn disarm-ns-directive-operator?
