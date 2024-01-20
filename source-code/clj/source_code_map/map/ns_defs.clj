@@ -1,8 +1,6 @@
 
 (ns source-code-map.map.ns-defs
-    (:require [fruits.map.api     :refer [assoc-by]]
-              [fruits.seqable.api :refer [last-dex]]
-              [fruits.vector.api  :as vector]))
+    (:require [fruits.vector.api :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -30,7 +28,7 @@
   ; @return (vector)
   [result _ {:keys [tag-body]}]
   (let [left-symbol (tag-body :symbol)]
-       (assoc-by result [last-dex :name] left-symbol)))
+       (vector/update-last-item result assoc :name left-symbol)))
 
 (defn read-def-meta?
   ; @ignore
@@ -59,8 +57,8 @@
   [result {:keys [cursor]} {:keys [ending-tag tag-started-at]}]
   (let [left-type       (ending-tag)
         meta-started-at (tag-started-at left-type)]
-       (-> result (assoc-by [last-dex :meta :type]   left-type)
-                  (assoc-by [last-dex :meta :bounds] [meta-started-at cursor]))))
+       (-> result (vector/update-last-item assoc-in [:meta :type]   left-type)
+                  (vector/update-last-item assoc-in [:meta :bounds] [meta-started-at cursor]))))
 
 (defn read-def-value?
   ; @ignore
@@ -86,8 +84,8 @@
   [result {:keys [cursor]} {:keys [ending-tag tag-started-at]}]
   (let [left-type        (ending-tag)
         value-started-at (tag-started-at left-type)]
-       (-> result (assoc-by [last-dex :value :type]   left-type)
-                  (assoc-by [last-dex :value :bounds] [value-started-at cursor]))))
+       (-> result (vector/update-last-item assoc-in [:value :type]   left-type)
+                  (vector/update-last-item assoc-in [:value :bounds] [value-started-at cursor]))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -135,7 +133,7 @@
   ; @return (vector)
   [result {:keys [cursor]} {:keys [tag-started-at]}]
   (let [started-at (tag-started-at :def)]
-       (assoc-by result [last-dex :bounds] [started-at cursor])))
+       (vector/update-last-item result assoc :bounds [started-at cursor])))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------

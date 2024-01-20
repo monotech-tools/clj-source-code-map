@@ -1,8 +1,6 @@
 
 (ns source-code-map.map.ns-defns
-    (:require [fruits.map.api     :refer [assoc-by]]
-              [fruits.seqable.api :refer [last-dex]]
-              [fruits.vector.api  :as vector]))
+    (:require [fruits.vector.api :as vector]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -30,7 +28,7 @@
   ; @return (vector)
   [result _ {:keys [tag-body]}]
   (let [left-symbol (tag-body :symbol)]
-       (assoc-by result [last-dex :name] left-symbol)))
+       (vector/update-last-item result assoc :name left-symbol)))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -78,7 +76,7 @@
   ; @return (vector)
   [result {:keys [cursor]} {:keys [tag-started-at]}]
   (let [started-at (tag-started-at :defn)]
-       (assoc-by result [last-dex :bounds] [started-at cursor])))
+       (vector/update-last-item result assoc :bounds [started-at cursor])))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
