@@ -13,7 +13,7 @@
 
 (defn ns-declaration-map
   ; @description
-  ; Returns the namespace declaration map of the (first) namespace in the given 'file-content' string.
+  ; Returns the namespace declaration map of the (first) namespace within the given 'file-content' string.
   ;
   ; @param (string) file-content
   ;
@@ -83,7 +83,7 @@
 
 (defn ns-defs-map
   ; @description
-  ; Returns the def macros map of the (first) namespace in the given 'file-content' string.
+  ; Returns the def macros map of the (first) namespace within the given 'file-content' string.
   ;
   ; @usage
   ; (ns-defs-map "... (def MY-CONSTANT "...") ...")
@@ -139,7 +139,7 @@
 
 (defn ns-defns-map
   ; @description
-  ; Returns the defn macros map of the (first) namespace in the given 'file-content' string.
+  ; Returns the defn macros map of the (first) namespace within the given 'file-content' string.
   ;
   ; @param (string) file-content
   ;
@@ -183,7 +183,7 @@
 
 (defn ns-map
   ; @description
-  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace in the given 'file-content' string.
+  ; Returns the namespace declaration, def macros, and defn macros map of the (first) namespace within the given 'file-content' string.
   ;
   ; @param (string) file-content
   ;
