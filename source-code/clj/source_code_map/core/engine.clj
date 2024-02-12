@@ -53,7 +53,7 @@
   ; @param (string) filepath
   ;
   ; @usage
-  ; (ns-declaration-map "source-code/my_namespace.clj")
+  ; (read-ns-declaration-map "source-code/my_namespace.clj")
   ; =>
   ; {:bounds  [1 60]
   ;  :name    "my-namespace"
@@ -85,12 +85,12 @@
   ; @description
   ; Returns the def macros map of the (first) namespace within the given 'file-content' string.
   ;
+  ; @param (string) file-content
+  ;
   ; @usage
   ; (ns-defs-map "... (def MY-CONSTANT "...") ...")
   ; =>
   ; [{:bounds [63 86] :name "MY-CONSTANT" :value {:type :string :bounds [80 85]}} ...]
-  ;
-  ; @param (string) file-content
   ;
   ; @return (maps in vector)
   ; [(map) def
@@ -113,12 +113,12 @@
   ; @description
   ; Returns the def macros map of the (first) namespace in the file at the given filepath.
   ;
+  ; @param (string) filepath
+  ;
   ; @usage
-  ; (ns-defs-map "source-code/my_namespace.clj")
+  ; (read-ns-defs-map "source-code/my_namespace.clj")
   ; =>
   ; [{:bounds [63 86] :name "MY-CONSTANT" :value {:type :string :bounds [80 85]}} ...]
-  ;
-  ; @param (string) filepath
   ;
   ; @return (maps in vector)
   ; [(map) def
